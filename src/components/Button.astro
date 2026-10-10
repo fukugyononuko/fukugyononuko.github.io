@@ -1,0 +1,43 @@
+---
+// CMP-C01 ボタン型のリンク（02a §2a.7）。外部への遷移は ExternalLink を使う。
+interface Props {
+  href: string;
+  variant?: "primary" | "secondary";
+}
+const { href, variant = "primary" } = Astro.props;
+---
+<a class:list={["button", variant]} href={href}><slot /></a>
+
+<style>
+  .button {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 2.75rem;
+    padding: var(--space-2) var(--space-6);
+    border-radius: var(--radius-full);
+    font-weight: 700;
+    text-decoration: none;
+    transition: background-color 0.15s, transform 0.15s;
+  }
+  .button:hover {
+    transform: translateY(-1px);
+  }
+  .primary {
+    background: var(--color-sea);
+    color: var(--color-on-sea);
+  }
+  .primary:hover {
+    background: var(--color-sea-strong);
+    color: var(--color-on-sea);
+  }
+  .secondary {
+    background: var(--color-surface);
+    color: var(--color-sea);
+    border: 1px solid var(--color-border);
+  }
+  .secondary:hover {
+    background: var(--color-sea-soft);
+    color: var(--color-text);
+  }
+</style>

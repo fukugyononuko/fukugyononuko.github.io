@@ -31,6 +31,8 @@ jobs:
         run: npm audit --audit-level=high
       - name: Check workflow hardening (TC-N10)
         run: npm run check:workflows
+      - name: Check image metadata (TC-N15)
+        run: npm run check:images
       - name: Type check
         run: npm run lint
       - name: Dependency rules (TC-A01)

@@ -1,11 +1,29 @@
 ---
-// CMP-C01 Pages / SCR-00 共通レイアウト（DD-11）
-// フェーズ 1 の仮実装。Manager からの View の受け取りとメタ情報・CSP はフェーズ 2〜3 で入れる。
+// CMP-C01 Pages / SCR-00 共通レイアウト（DD-11、02a §2a.7）
+// フェーズ 2：見た目を確定。View（LayoutView、PageMeta、ChannelLinkView）の受け取りはフェーズ 3 で Manager につなぐ。
+import "@fontsource/zen-maru-gothic/500.css";
+import "@fontsource/zen-maru-gothic/700.css";
+import "../styles/tokens.css";
+import "../styles/global.css";
+import Header from "../components/Header.astro";
+import Footer from "../components/Footer.astro";
+import type { ChannelLinkView } from "../system/contracts";
+
 interface Props {
   title: string;
   description: string;
+  siteName?: string;
+  copyright?: string;
+  channels?: ChannelLinkView[];
 }
-const { title, description } = Astro.props;
+const {
+  title,
+  description,
+  siteName = "副業のぬこ",
+  copyright = `© ${new Date().getFullYear()} 副業のぬこ`,
+  channels = [],
+} = Astro.props;
+const canonical = new URL(Astro.url.pathname, Astro.site);
 ---
 <!doctype html>
 <html lang="ja">
@@ -14,32 +32,34 @@ const { title, description } = Astro.props;
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>{title}</title>
     <meta name="description" content={description} />
-    <link rel="canonical" href={new URL(Astro.url.pathname, Astro.site)} />
-    <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
-    <style is:global>
-      :root {
-        --color-bg: #fffaf3;
-        --color-text: #2b2420;
-        --color-muted: #6b5f57;
-        color-scheme: light dark;
-      }
-      @media (prefers-color-scheme: dark) {
-        :root {
-          --color-bg: #1f1b18;
-          --color-text: #f3ece6;
-          --color-muted: #b8aca3;
-        }
-      }
-      body {
-        margin: 0;
-        background: var(--color-bg);
-        color: var(--color-text);
-        font-family: system-ui, -apple-system, "Hiragino Sans", "Noto Sans JP", sans-serif;
-        line-height: 1.7;
-      }
-    </style>
+    <link rel="canonical" href={canonical} />
+    <meta name="theme-color" content="#f6f2ea" media="(prefers-color-scheme: light)" />
+    <meta name="theme-color" content="#1b2128" media="(prefers-color-scheme: dark)" />
+    <link rel="icon" href="/favicon.png" type="image/png" />
+    <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
   </head>
   <body>
-    <slot />
+    <a class="skip-link" href="#main">本文へ移動</a>
+    <Header siteName={siteName} />
+    <main id="main">
+      <slot />
+    </main>
+    <Footer copyright={copyright} channels={channels} />
   </body>
 </html>
+
+<style>
+  .skip-link {
+    position: absolute;
+    left: var(--space-4);
+    top: -3rem;
+    z-index: 20;
+    padding: var(--space-2) var(--space-4);
+    background: var(--color-sea);
+    color: var(--color-on-sea);
+    border-radius: var(--radius-s);
+  }
+  .skip-link:focus {
+    top: var(--space-2);
+  }
+</style>

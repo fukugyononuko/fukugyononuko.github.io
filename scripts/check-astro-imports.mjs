@@ -24,7 +24,7 @@ function isForbidden(specifier, fromFile) {
   if (target === "src/content.config" || target === "src/content.config.ts") return true;
   if (target.startsWith("src/content/")) return true;
   if (!target.startsWith("src/system/")) return false;
-  return !(/^src\/system\/compose(\.ts)?$/.test(target) || target.startsWith("src/system/contracts/"));
+  return !(/^src\/system\/compose(\.ts)?$/.test(target) || target === "src/system/contracts" || target.startsWith("src/system/contracts/"));
 }
 
 const violations = [];

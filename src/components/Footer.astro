@@ -1,0 +1,65 @@
+---
+// CMP-C01 / SCR-00 共通レイアウト：フッター（02a §2a.4、FR-10）
+// channels は EngagementManager.getChannelLinks() の結果を受け取る（フェーズ 3 で接続）。
+import type { ChannelLinkView } from "../system/contracts";
+import ExternalLink from "./ExternalLink.astro";
+
+interface Props {
+  copyright: string;
+  channels: ChannelLinkView[];
+}
+const { copyright, channels } = Astro.props;
+---
+<footer class="site-footer">
+  <svg class="wave" viewBox="0 0 1440 48" preserveAspectRatio="none" aria-hidden="true">
+    <path d="M0 24 C 240 4, 480 44, 720 24 S 1200 4, 1440 24 V48 H0 Z" />
+  </svg>
+  <div class="body">
+    <div class="container inner">
+      {channels.length > 0 && (
+        <ul class="channels">
+          {channels.map((c) => (
+            <li><ExternalLink href={c.url}>{c.label}</ExternalLink></li>
+          ))}
+        </ul>
+      )}
+      <p class="copyright">{copyright}</p>
+    </div>
+  </div>
+</footer>
+
+<style>
+  .site-footer {
+    margin-top: auto;
+  }
+  .wave {
+    display: block;
+    width: 100%;
+    height: 2rem;
+    fill: var(--color-sunken);
+  }
+  .body {
+    background: var(--color-sunken);
+  }
+  .inner {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: var(--space-3);
+    padding-block: var(--space-6) var(--space-8);
+  }
+  .channels {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: var(--space-2) var(--space-6);
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+  .copyright {
+    margin: 0;
+    color: var(--color-text-muted);
+    font-size: 0.875rem;
+  }
+</style>

@@ -14,10 +14,12 @@
     "depcruise": "depcruise src --config .dependency-cruiser.cjs && node scripts/check-astro-imports.mjs",
     "check:workflows": "node scripts/check-workflows.mjs",
     "test": "vitest run",
-    "test:e2e": "playwright test"
+    "test:e2e": "playwright test",
+    "check:images": "node scripts/check-image-metadata.mjs"
   },
   "dependencies": {
     "@astrojs/sitemap": "^3.7.4",
+    "@fontsource/zen-maru-gothic": "^5.3.0",
     "astro": "^7.3.8"
   },
   "devDependencies": {
