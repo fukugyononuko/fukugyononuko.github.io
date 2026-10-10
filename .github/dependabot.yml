@@ -8,6 +8,10 @@ updates:
     groups:
       dev-dependencies:
         dependency-type: development
+    ignore:
+      # @astrojs/check の peerDependencies が typescript ^5 || ^6 のため。対応したら外す。
+      - dependency-name: typescript
+        update-types: ["version-update:semver-major"]
   - package-ecosystem: github-actions
     directory: /
     schedule:
