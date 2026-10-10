@@ -1,0 +1,23 @@
+---
+// CMP-C01 Pages / SCR-06 Not Found（FR-12、DD-11）
+import BaseLayout from "../layouts/BaseLayout.astro";
+---
+<BaseLayout title="ページが見つかりません | 副業のぬこ" description="お探しのページは見つかりませんでした。">
+  <main class="not-found">
+    <h1>ページが見つかりません</h1>
+    <p>URL が変わったか、ページが削除された可能性があります。</p>
+    <p><a href="/">トップへ戻る</a></p>
+  </main>
+</BaseLayout>
+
+<style>
+  .not-found {
+    max-width: 40rem;
+    margin: 0 auto;
+    padding: 4rem 1rem;
+    text-align: center;
+  }
+  a {
+    color: inherit;
+  }
+</style>
