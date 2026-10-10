@@ -23,7 +23,7 @@ flowchart LR
 | --- | --- | --- |
 | BR-01 能力を伝える | FR-01, FR-02, FR-03, FR-09 | NFR-01, NFR-02, NFR-03, NFR-04, NFR-05, NFR-10 |
 | BR-02 サービスを示し依頼につなげる | FR-04, FR-05, FR-06, FR-07, FR-08, FR-09 | NFR-01, NFR-02, NFR-03, NFR-04, NFR-10 |
-| BR-03 note への導線 | FR-07, FR-10, FR-11 | NFR-04 |
+| BR-03 収益化の場（現時点では note）への導線 | FR-07, FR-10, FR-11 | NFR-04 |
 | BR-04 維持費ゼロ・更新が簡単 | FR-12, FR-13, FR-14 | NFR-07 |
 | BR-05 変化に対応できる | — | NFR-08, NFR-09 |
 | BR-06 個人情報を出さない | — | NFR-06, NFR-14, NFR-17 |
