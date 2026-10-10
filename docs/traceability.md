@@ -96,7 +96,7 @@ flowchart LR
 | VOL-07 外部チャネル | A03（RES-03） | DD-07 | TC-R07 | OPEN-04 |
 | VOL-08 公開先 | U01 | DD-10 | TC-R08 | — |
 | VOL-09 アクセス解析 | U03（EIF-04） | DD-10, DD-16 | TC-R09 | OPEN-06 |
-| VOL-10 見た目 | C01 | DD-11 | TC-R10 | OPEN-05 |
+| VOL-10 見た目 | C01 | DD-11、02a §2a.7 | TC-R10 | OPEN-05（解決済み） |
 | VOL-11 ユースケースの手順 | M01, M02 | DD-09 | TC-R11 | — |
 
 ## T.6 構成要素からの逆引き

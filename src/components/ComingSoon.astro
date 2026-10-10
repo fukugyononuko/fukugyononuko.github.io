@@ -1,0 +1,23 @@
+---
+// CMP-C01 仮のページ本文（フェーズ 2）。フェーズ 3 で各画面の本実装に置き換える。
+import Button from "./Button.astro";
+interface Props {
+  heading: string;
+}
+const { heading } = Astro.props;
+---
+<section class="container coming-soon">
+  <h1>{heading}</h1>
+  <p>このページは準備中です。</p>
+  <Button href="/" variant="secondary">トップへ戻る</Button>
+</section>
+
+<style>
+  .coming-soon {
+    padding-block: var(--space-16);
+    text-align: center;
+  }
+  p {
+    color: var(--color-text-muted);
+  }
+</style>

@@ -1,23 +1,108 @@
 ---
 // CMP-C01 Pages / SCR-01 トップ（DD-11）
-// フェーズ 1 の仮ページ。フェーズ 3 で ShowcaseManager.getHomeView() を使う形に置き換える。
+// フェーズ 2：ヒーローの見た目を確定。文言と注目項目はフェーズ 3 で ShowcaseManager.getHomeView() から受け取る。
 import BaseLayout from "../layouts/BaseLayout.astro";
+import Button from "../components/Button.astro";
 ---
-<BaseLayout title="副業のぬこ" description="副業のぬこのホームページです。現在準備中です。">
-  <main class="placeholder">
-    <h1>副業のぬこ</h1>
-    <p>ホームページを準備中です。</p>
-  </main>
+<BaseLayout title="副業のぬこ" description="副業のぬこのホームページです。ホームページやモックの制作、データ解析のご相談を受け付けます（準備中）。">
+  <section class="hero">
+    <div class="photo">
+      <img
+        src="/images/hero-1600.webp"
+        srcset="/images/hero-800.webp 800w, /images/hero-1600.webp 1600w"
+        sizes="(min-width: 64rem) 64rem, 100vw"
+        width="1600"
+        height="1066"
+        alt="木漏れ日の砂浜で休むカモメ"
+        fetchpriority="high"
+      />
+    </div>
+    <div class="container intro">
+      <h1>副業のぬこ</h1>
+      <p class="tagline">ホームページやモックづくり、データ解析を、<br class="pc" />ひとつずつ丁寧に。</p>
+      <p class="status">ホームページを準備中です。</p>
+      <div class="actions">
+        <Button href="/services/">できること</Button>
+        <Button href="/contact/" variant="secondary">問い合わせる</Button>
+      </div>
+    </div>
+  </section>
 </BaseLayout>
 
 <style>
-  .placeholder {
-    max-width: 40rem;
-    margin: 0 auto;
-    padding: 4rem 1rem;
-    text-align: center;
+  .hero {
+    padding-bottom: var(--space-12);
   }
-  p {
-    color: var(--color-muted);
+  .photo {
+    position: relative;
+    max-width: var(--content-width);
+    margin: var(--space-4) auto 0;
+    padding-inline: var(--gutter);
+  }
+  .photo img {
+    width: 100%;
+    aspect-ratio: 4 / 3;
+    object-fit: cover;
+    object-position: 30% 65%;
+    border-radius: var(--radius-l);
+    box-shadow: 0 8px 32px var(--color-shadow);
+  }
+  @media (min-width: 40rem) {
+    .photo img {
+      aspect-ratio: 16 / 9;
+      object-position: 35% 60%;
+    }
+  }
+  @media (prefers-color-scheme: dark) {
+    .photo img {
+      filter: brightness(0.9);
+    }
+  }
+  .intro {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    margin-top: var(--space-8);
+  }
+  h1 {
+    margin: 0 0 var(--space-2);
+    font-size: clamp(1.75rem, 5vw, 2.5rem);
+  }
+  .tagline {
+    margin: 0;
+    font-family: var(--font-heading);
+    font-weight: 500;
+    font-size: 1.125rem;
+  }
+  .tagline .pc {
+    display: none;
+  }
+  @media (min-width: 40rem) {
+    .tagline .pc {
+      display: inline;
+    }
+  }
+  .status {
+    margin: var(--space-3) 0 0;
+    color: var(--color-text-muted);
+    font-size: 0.9375rem;
+  }
+  .status::before {
+    content: "";
+    display: inline-block;
+    width: 0.5rem;
+    height: 0.5rem;
+    margin-right: var(--space-2);
+    border-radius: var(--radius-full);
+    background: var(--color-beak);
+    vertical-align: 0.1em;
+  }
+  .actions {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: var(--space-3);
+    margin-top: var(--space-6);
   }
 </style>

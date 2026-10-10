@@ -1,0 +1,89 @@
+---
+// CMP-C01 / SCR-00 共通レイアウト：ヘッダー（02a §2a.4、§2a.7）
+interface Props {
+  siteName: string;
+}
+const { siteName } = Astro.props;
+const path = Astro.url.pathname;
+const nav = [
+  { href: "/about/", label: "About" },
+  { href: "/services/", label: "サービス" },
+  { href: "/contact/", label: "問い合わせ" },
+];
+---
+<header class="site-header">
+  <div class="container inner">
+    <a class="brand" href="/">
+      <img src="/images/avatar-320.webp" alt="" width="40" height="40" />
+      <span>{siteName}</span>
+    </a>
+    <nav aria-label="メインメニュー">
+      <ul>
+        {nav.map((item) => (
+          <li>
+            <a href={item.href} aria-current={path.startsWith(item.href) ? "page" : undefined}>{item.label}</a>
+          </li>
+        ))}
+      </ul>
+    </nav>
+  </div>
+</header>
+
+<style>
+  .site-header {
+    position: sticky;
+    top: 0;
+    z-index: 10;
+    background: color-mix(in srgb, var(--color-bg) 88%, transparent);
+    backdrop-filter: blur(8px);
+    border-bottom: 1px solid var(--color-border);
+  }
+  .inner {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--space-2) var(--space-4);
+    padding-block: var(--space-3);
+  }
+  .brand {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--space-2);
+    color: var(--color-text);
+    text-decoration: none;
+    font-family: var(--font-heading);
+    font-weight: 700;
+    font-size: 1.125rem;
+  }
+  .brand img {
+    width: 2.5rem;
+    height: 2.5rem;
+    border-radius: var(--radius-full);
+    border: 2px solid var(--color-surface);
+    box-shadow: 0 1px 4px var(--color-shadow);
+  }
+  ul {
+    display: flex;
+    gap: var(--space-1);
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+  nav a {
+    display: inline-block;
+    padding: var(--space-1) var(--space-3);
+    border-radius: var(--radius-full);
+    color: var(--color-text);
+    text-decoration: none;
+    font-size: 0.9375rem;
+  }
+  nav a:hover {
+    background: var(--color-sea-soft);
+    color: var(--color-text);
+  }
+  nav a[aria-current="page"] {
+    background: var(--color-sea-soft);
+    font-weight: 700;
+  }
+</style>

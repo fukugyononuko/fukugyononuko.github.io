@@ -372,7 +372,7 @@ label: X の DM で問い合わせる
 | SCR-05 | `src/pages/contact.astro`、`src/components/inquiry/{FormPost,Embed,Link}.astro`、`src/scripts/contact-prefill.ts` | `getContactView` |
 | SCR-06 | `src/pages/404.astro` | `getLayoutView` だけ |
 
-- スタイルは `src/styles/tokens.css`（色・余白・文字の CSS 変数）と、各コンポーネントの scoped CSS。ダークモードは `prefers-color-scheme` で CSS 変数を切り替える（NFR-05）。
+- スタイルは `src/styles/tokens.css`（色・余白・文字の CSS 変数）、`src/styles/global.css`（全体の基本）、各コンポーネントの scoped CSS。ダークモードは `prefers-color-scheme` で CSS 変数を切り替える（NFR-05）。値と部品の一覧は 02a §2a.7。
 - 閲覧時の JavaScript は `contact-prefill.ts` だけ（NFR-10）。`?service=` の値が `serviceOptions` にあるときだけ選択欄に反映する。値を HTML として書き込まない（NFR-15）。
 - 外部リンクは共通コンポーネント `ExternalLink.astro` だけで出力し、`target="_blank" rel="noopener noreferrer"` を必ず付ける（NFR-16）。
 - Markdown 本文の描画は Client で行う。
