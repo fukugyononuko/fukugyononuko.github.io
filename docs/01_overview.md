@@ -31,8 +31,8 @@ The Method の 2 つの軸で洗い出した。
 | ID | 変動性 | 想定される変化の例 | 軸 | 閉じ込める先 |
 | --- | --- | --- | --- | --- |
 | VOL-01 | 問い合わせ手段 | Google フォーム → Formspree → DM のみ、など | 時間 | CMP-A02 InquiryAccess |
-| VOL-02 | 取引の場と、その場への導線を決めるルール | 問い合わせのみ → 一部のプロダクトは note で販売 → 他の販売サイトを追加 | 時間 | CMP-E03 CtaEngine |
-| VOL-03 | 価格の見せ方 | 明記 → 「〜円から」→ 要見積もり。プロダクトによって変える | 時間、利用者 | CMP-E01 PricingEngine |
+| VOL-02 | 取引の場と、その場への導線を決めるルール | 問い合わせのみ → note でテンプレートなどを販売 → 他の販売サイトを追加 | 時間 | CMP-E03 CtaEngine |
+| VOL-03 | 価格の見せ方 | 明記 → 「〜円から」→ 要見積もり。サービスによって変える | 時間、利用者 | CMP-E01 PricingEngine |
 | VOL-04 | 注目項目の選び方と並び順 | 手動で指定 → 新しい順 → 種類ごとに 1 件ずつ | 時間 | CMP-E02 CurationEngine |
 | VOL-05 | コンテンツの保管場所と形式 | リポジトリ内の Markdown / YAML → ヘッドレス CMS など | 時間 | CMP-A01 ContentAccess |
 | VOL-06 | 記事の出所 | なし → note の RSS → 自サイトのブログ → その両方 | 時間 | CMP-A04 ArticleAccess |
@@ -42,9 +42,9 @@ The Method の 2 つの軸で洗い出した。
 | VOL-10 | 見た目（デザイン、テーマ、レイアウト） | 配色やフォントの変更、ダーク / ライト、画面幅による違い | 時間、利用者 | CMP-C01 Pages（Client 層） |
 | VOL-11 | ユースケースの手順（何をどの順に見せ、どこへつなぐか） | トップに記事一覧を足す、詳細ページから直接 note へ送る | 時間 | CMP-M01 ShowcaseManager / CMP-M02 EngagementManager |
 
-### プロダクトの中身は「変動性」ではなく「データ」
+### サービスの中身は「変動性」ではなく「データ」
 
-プロダクトの追加、文言の修正、価格の改定は頻繁に起きる。ただし、これらはスキーマの範囲内でデータが変わるだけで、構成要素の設計は変わらない。The Method では、データの変化は変動性として扱わない。本システムでは RES-01（コンテンツファイル）を書き換えるだけで済む。
+サービスの追加、文言の修正、価格の改定は頻繁に起きる。ただし、これらはスキーマの範囲内でデータが変わるだけで、構成要素の設計は変わらない。The Method では、データの変化は変動性として扱わない。本システムでは RES-01（コンテンツファイル）を書き換えるだけで済む。
 
 ## 1.3 変動性として扱わないもの
 
@@ -116,22 +116,22 @@ Manager は、ユースケースの「手順」の変動性を閉じ込める。
 
 | Manager | 閉じ込める手順 | 担当するユースケース |
 | --- | --- | --- |
-| CMP-M01 ShowcaseManager | **見せる**手順：運営者とプロダクトを、どの情報をどう組み合わせて見せるか | UC-01, UC-02 |
+| CMP-M01 ShowcaseManager | **見せる**手順：運営者とサービスを、どの情報をどう組み合わせて見せるか | UC-01, UC-02 |
 | CMP-M02 EngagementManager | **つなぐ**手順：訪問者を、問い合わせや外部の場にどうつなぐか | UC-03, UC-04 |
 
 UC-05（運営者による更新と公開）は、Manager を通さない。運営者の環境（CMP-C02）と CI パイプライン（DD-13）の手順で実現し、スキーマの強制は ContentAccess が担う（FR-14）。
 
-ページ単位（About / Products / Contact）に Manager を作ると機能分解になるので、そうしない。ページの増減は Client 層の変化（VOL-10）として吸収する。
+ページ単位（About / Services / Contact）に Manager を作ると機能分解になるので、そうしない。ページの増減は Client 層の変化（VOL-10）として吸収する。
 
 ### Engine の共有
 
-CtaEngine は 2 つの Manager の両方から呼ばれる。プロダクト詳細の行動喚起（ShowcaseManager）と問い合わせ導線（EngagementManager）が、同じ導線ルールを使うためである。The Method では、Manager 同士が呼び合うのではなく Engine を共有することを推奨している。
+CtaEngine は 2 つの Manager の両方から呼ばれる。サービス詳細の行動喚起（ShowcaseManager）と問い合わせ導線（EngagementManager）が、同じ導線ルールを使うためである。The Method では、Manager 同士が呼び合うのではなく Engine を共有することを推奨している。
 
 ## 1.5 リソース（RES）
 
 | ID | リソース | 実体 | 状態 |
 | --- | --- | --- | --- |
-| RES-01 | コンテンツファイル | `src/content/` の Markdown / YAML（プロフィール、スキル、実績、プロダクト、表示設定） | 初期 |
+| RES-01 | コンテンツファイル | `src/content/` の Markdown / YAML（プロフィール、スキル、制作例、サービス、表示設定） | 初期 |
 | RES-02 | 問い合わせ設定 | `src/content/settings/inquiry.yaml`（手段の種類と接続先） | 初期 |
 | RES-03 | チャネル設定 | `src/content/settings/channels.yaml`（外部チャネルの一覧） | 初期 |
 | RES-04 | 記事の配信元 | note の RSS など | 将来 |
@@ -151,7 +151,7 @@ RES-05 と RES-06 には、ビルド時の構成要素から直接アクセス�
 | R5 | ResourceAccess は自分のリソースにだけアクセスする。ResourceAccess から ResourceAccess は呼ばない |
 | R6 | 上位の層を呼んではいけない（Engine から Manager、ResourceAccess から Engine など） |
 | R7 | Utility はどの層からも呼べる。Utility から他の層は呼ばない |
-| R8 | ResourceAccess が公開するのは業務の言葉の操作（`listOfferedProducts` など）とし、CRUD やファイルパスを外に出さない |
+| R8 | ResourceAccess が公開するのは業務の言葉の操作（`listOfferedServices` など）とし、CRUD やファイルパスを外に出さない |
 | R9 | 層と層の間は `src/system/contracts/` の型だけで受け渡す。リソースの生の形式（frontmatter など）を上に漏らさない |
 
 R1〜R7 は dependency-cruiser で CI 検査する（NFR-09、DD-12、TC-A01）。R8 と R9 はレビューで確認する。

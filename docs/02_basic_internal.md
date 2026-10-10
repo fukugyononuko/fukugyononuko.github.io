@@ -26,23 +26,23 @@
 ### CMP-C01 Pages（Client）
 - 責務：Manager から受け取った View を HTML にする。見た目とレイアウトのすべて。
 - 知ってはいけないこと：コンテンツファイルの場所や形式、価格表示や導線のルール、問い合わせ先の接続情報。
-- 閲覧時に動く JavaScript は Client の中だけに置く（問い合わせ時のプロダクト指定の補助など）。
+- 閲覧時に動く JavaScript は Client の中だけに置く（問い合わせ時のサービス指定の補助など）。
 
 ### CMP-C02 運営者の環境（Client）
 - 責務：コンテンツファイルを編集し、`main` に push する。
 - 決められたスキーマ（DD-02）に従ってコンテンツを書く。
 
 ### CMP-M01 ShowcaseManager
-- 責務：運営者とプロダクトを「見せる」手順の組み立て。
+- 責務：運営者とサービスを「見せる」手順の組み立て。
 
 | 操作 | 意味 | 呼び出す相手 |
 | --- | --- | --- |
 | `getLayoutView()` | 共通レイアウトに必要な、運営者に関する情報 | A01 |
 | `getHomeView()` | トップに出す注目項目 | A01, E02, E01, U02 |
-| `getAboutView()` | プロフィール、スキル、実績 | A01, E02, U02 |
-| `getProductCatalogView()` | 公開中のプロダクトの一覧（価格表示つき） | A01, E02, E01, U02 |
-| `listProductSlugs()` | 詳細ページを生成するプロダクトの slug 一覧 | A01 |
-| `getProductDetailView(slug)` | 1 プロダクトの詳細（価格表示と行動喚起つき） | A01, E01, E03, U02 |
+| `getAboutView()` | プロフィール、スキル、制作例 | A01, E02, U02 |
+| `getServiceCatalogView()` | 公開中のサービスの一覧（価格表示つき） | A01, E02, E01, U02 |
+| `listServiceSlugs()` | 詳細ページを生成するサービスの slug 一覧 | A01 |
+| `getServiceDetailView(slug)` | 1 サービスの詳細（価格表示と行動喚起つき） | A01, E01, E03, U02 |
 
 ### CMP-M02 EngagementManager
 - 責務：訪問者を問い合わせや外部の場に「つなぐ」手順の組み立て。
@@ -50,24 +50,24 @@
 | 操作 | 意味 | 呼び出す相手 |
 | --- | --- | --- |
 | `getChannelLinks()` | 共通フッターに出す外部チャネルのリンク | A03 |
-| `getContactView()` | 問い合わせ手段と、問い合わせで指定できるプロダクトの選択肢 | A02, A01, E03, U02 |
+| `getContactView()` | 問い合わせ手段と、問い合わせで指定できるサービスの選択肢 | A02, A01, E03, U02 |
 | `getArticleFeedView(limit)` | 最新記事の一覧（将来） | A04 |
 
-`getContactView` は、各プロダクトについて CtaEngine に導線を判定させ、導線が「問い合わせ」のプロダクトだけを選択肢にする。note で販売しているプロダクトを問い合わせの選択肢に出さないため。
+`getContactView` は、各サービスについて CtaEngine に導線を判定させ、導線が「問い合わせ」のサービスだけを選択肢にする。note で販売しているもの（将来）を問い合わせの選択肢に出さないため。
 
 ### CMP-E01 PricingEngine
-- 責務：プロダクトの価格情報と価格表示ポリシーから、表示用の価格を決める（VOL-03）。
+- 責務：サービスの価格情報と価格表示ポリシーから、表示用の価格を決める（VOL-03）。
 - `presentPrice(price, policy)`：表示する文字列、注記、表示の種類を返す。リソースにはアクセスしない（純粋な関数）。
 
 ### CMP-E02 CurationEngine
 - 責務：項目の集合から、注目項目を選び、並べる（VOL-04）。
 - `pickFeatured(items, rule)`：規則に従って最大 N 件を選ぶ。
 - `arrange(items, rule)`：規則に従って並べる。
-- スキル、実績、プロダクトに共通の「並べられる項目」（`Curatable`）として扱い、種類ごとの違いを知らない。
+- スキル、制作例、サービスに共通の「並べられる項目」（`Curatable`）として扱い、種類ごとの違いを知らない。
 
 ### CMP-E03 CtaEngine
-- 責務：プロダクトごとに、訪問者をどこにつなぐかを決める（VOL-02）。
-- `decideForProduct(product)`：行き先（問い合わせ / 外部の場）、リンク先、ラベルを返す。
+- 責務：サービスごとに、訪問者をどこにつなぐかを決める（VOL-02）。
+- `decideForService(service)`：行き先（問い合わせ / 外部の場）、リンク先、ラベルを返す。
 - 外部の場の URL は CMP-A03 ChannelAccess から得る。存在しないチャネルが指定されていたらエラーにする（DD-14）。
 
 ### CMP-A01 ContentAccess
@@ -77,9 +77,9 @@
 | --- | --- |
 | `getOperatorProfile()` | 運営者のプロフィール |
 | `listSkillGroups()` | 分類ごとのスキル |
-| `listWorks()` | 公開する実績 |
-| `listOfferedProducts()` | 公開中のプロダクト（下書きは含めない） |
-| `findOfferedProduct(slug)` | 公開中のプロダクト 1 件。なければ `undefined` |
+| `listWorks()` | 公開する制作例 |
+| `listOfferedServices()` | 公開中のサービス（下書きは含めない） |
+| `findOfferedService(slug)` | 公開中のサービス 1 件。なければ `undefined` |
 | `getPresentationSettings()` | 価格表示ポリシー、注目項目の選び方などの表示設定 |
 
 - スキーマ違反のコンテンツはビルドを失敗させる（FR-14）。
@@ -117,7 +117,7 @@
 | --- | --- | --- |
 | CC-01 | トップの表示 | UC-01, UC-02 |
 | CC-02 | About の表示 | UC-01 |
-| CC-03 | プロダクト一覧・詳細の表示 | UC-02 |
+| CC-03 | サービス一覧・詳細の表示 | UC-02 |
 | CC-04 | 問い合わせ | UC-03 |
 | CC-05 | 外部の場への移動 | UC-04 |
 | CC-06 | コンテンツの更新と公開 | UC-05 |
@@ -135,9 +135,9 @@ sequenceDiagram
   P->>SM: getHomeView()
   SM->>CA: getOperatorProfile()
   SM->>CA: getPresentationSettings()
-  SM->>CA: listSkillGroups() / listWorks() / listOfferedProducts()
-  SM->>CE: pickFeatured(skills / works / products, rule)
-  loop 注目プロダクトごと
+  SM->>CA: listSkillGroups() / listWorks() / listOfferedServices()
+  SM->>CE: pickFeatured(skills / works / services, rule)
+  loop 注目サービスごと
     SM->>PE: presentPrice(price, policy)
   end
   SM->>SEO: buildPageMeta(...)
@@ -165,30 +165,30 @@ sequenceDiagram
   SM-->>P: AboutView
 ```
 
-### CC-03 プロダクト一覧・詳細の表示（ビルド時）
+### CC-03 サービス一覧・詳細の表示（ビルド時）
 
 ```mermaid
 sequenceDiagram
-  participant P as C01 Pages（/products/…）
+  participant P as C01 Pages（/services/…）
   participant SM as M01 ShowcaseManager
   participant CA as A01 ContentAccess
   participant CE as E02 CurationEngine
   participant PE as E01 PricingEngine
   participant CT as E03 CtaEngine
   participant CH as A03 ChannelAccess
-  P->>SM: getProductCatalogView()
-  SM->>CA: listOfferedProducts() / getPresentationSettings()
-  SM->>CE: arrange(products, rule)
-  SM->>PE: presentPrice(...)（各プロダクト）
-  SM-->>P: ProductCatalogView
-  P->>SM: listProductSlugs()
+  P->>SM: getServiceCatalogView()
+  SM->>CA: listOfferedServices() / getPresentationSettings()
+  SM->>CE: arrange(services, rule)
+  SM->>PE: presentPrice(...)（各サービス）
+  SM-->>P: ServiceCatalogView
+  P->>SM: listServiceSlugs()
   loop slug ごと
-    P->>SM: getProductDetailView(slug)
-    SM->>CA: findOfferedProduct(slug)
+    P->>SM: getServiceDetailView(slug)
+    SM->>CA: findOfferedService(slug)
     SM->>PE: presentPrice(price, policy)
-    SM->>CT: decideForProduct(product)
+    SM->>CT: decideForService(service)
     CT->>CH: findChannel(id)（外部の場のとき）
-    SM-->>P: ProductDetailView
+    SM-->>P: ServiceDetailView
   end
 ```
 
@@ -206,11 +206,11 @@ sequenceDiagram
   Note over P,CT: ビルド時
   P->>EM: getContactView()
   EM->>IA: getInquiryChannel()
-  EM->>CA: listOfferedProducts()
-  EM->>CT: decideForProduct(product)（各プロダクト）
-  EM-->>P: ContactView（問い合わせ導線のプロダクトだけを選択肢に）
+  EM->>CA: listOfferedServices()
+  EM->>CT: decideForService(service)（各サービス）
+  EM-->>P: ContactView（問い合わせ導線のサービスだけを選択肢に）
   Note over V,EXT: 閲覧時
-  V->>V: ?product= を読んで選択欄に反映（JS が有効なときだけ）
+  V->>V: ?service= を読んで選択欄に反映（JS が有効なときだけ）
   V->>EXT: 送信 / 遷移
 ```
 
@@ -234,7 +234,7 @@ sequenceDiagram
   V->>V: リンクを選ぶと新しいタブで外部の場が開く
 ```
 
-プロダクト詳細の行動喚起からの移動は CC-03 で解決済みのリンクを使う。
+サービス詳細の行動喚起からの移動は CC-03 で解決済みのリンクを使う。
 
 ### CC-06 コンテンツの更新と公開
 
@@ -263,7 +263,7 @@ sequenceDiagram
 | VOL | 変化の例 | 変える場所 | 変えなくてよい場所 |
 | --- | --- | --- | --- |
 | VOL-01 | Google フォーム → Formspree | A02 と RES-02 | Manager、Engine、ページ（手段の種類が既存の 3 種類に収まる場合） |
-| VOL-02 | 一部のプロダクトを note で販売 | RES-01 のプロダクトに導線を指定。ルール自体を変えるなら E03 | Manager、ページ |
+| VOL-02 | テンプレートなどを note で販売する | RES-01 のサービスに導線を指定。ルール自体を変えるなら E03 | Manager、ページ |
 | VOL-03 | 「〜円から」に統一 | RES-01 の表示設定。新しい見せ方なら E01 | それ以外のすべて |
 | VOL-04 | 注目項目を新しい順に | RES-01 の表示設定。新しい規則なら E02 | それ以外のすべて |
 | VOL-05 | CMS に移行 | A01 | Manager、Engine、ページ |

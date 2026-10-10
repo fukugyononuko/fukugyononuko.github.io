@@ -22,7 +22,7 @@ flowchart LR
 | BR | FR | NFR |
 | --- | --- | --- |
 | BR-01 能力を伝える | FR-01, FR-02, FR-03, FR-09 | NFR-01, NFR-02, NFR-03, NFR-04, NFR-05, NFR-10 |
-| BR-02 プロダクトを示し依頼につなげる | FR-04, FR-05, FR-06, FR-07, FR-08, FR-09 | NFR-01, NFR-02, NFR-03, NFR-04, NFR-10 |
+| BR-02 サービスを示し依頼につなげる | FR-04, FR-05, FR-06, FR-07, FR-08, FR-09 | NFR-01, NFR-02, NFR-03, NFR-04, NFR-10 |
 | BR-03 note への導線 | FR-07, FR-10, FR-11 | NFR-04 |
 | BR-04 維持費ゼロ・更新が簡単 | FR-12, FR-13, FR-14 | NFR-07 |
 | BR-05 変化に対応できる | — | NFR-08, NFR-09 |
@@ -35,9 +35,9 @@ flowchart LR
 | --- | --- | --- | --- | --- | --- | --- |
 | FR-01 プロフィール | UC-01 | C01, M01, A01 | SCR-01, SCR-02 | DD-01, DD-02, DD-09, DD-11 | TC-U04, TC-I01, TC-S01 | 初期 |
 | FR-02 スキル | UC-01 | C01, M01, E02, A01 | SCR-01, SCR-02 | DD-02, DD-04, DD-09 | TC-U02, TC-U04, TC-I01, TC-S01 | 初期 |
-| FR-03 実績 | UC-01 | C01, M01, E02, A01 | SCR-01, SCR-02 | DD-02, DD-04, DD-09 | TC-U02, TC-U04, TC-I01, TC-S01 | 初期 |
-| FR-04 プロダクト一覧 | UC-02 | C01, M01, E01, E02, A01 | SCR-03 | DD-02, DD-04, DD-09, DD-11 | TC-U04, TC-I01, TC-S01, TC-S02 | 初期 |
-| FR-05 プロダクト詳細 | UC-02 | C01, M01, E01, E03, A01 | SCR-04 | DD-02, DD-09, DD-11 | TC-I01, TC-S01, TC-S02 | 初期 |
+| FR-03 制作例 | UC-01 | C01, M01, E02, A01 | SCR-01, SCR-02 | DD-02, DD-04, DD-09 | TC-U02, TC-U04, TC-I01, TC-S01, TC-S10 | 初期 |
+| FR-04 サービス一覧 | UC-02 | C01, M01, E01, E02, A01 | SCR-03 | DD-02, DD-04, DD-09, DD-11 | TC-U04, TC-I01, TC-S01, TC-S02, TC-S10 | 初期 |
+| FR-05 サービス詳細 | UC-02 | C01, M01, E01, E03, A01 | SCR-04 | DD-02, DD-09, DD-11 | TC-I01, TC-S01, TC-S02 | 初期 |
 | FR-06 価格表示ポリシー | UC-02 | M01, E01, A01 | SCR-01, SCR-03, SCR-04 | DD-02, DD-03 | TC-U01, TC-I01, TC-R03 | 初期 |
 | FR-07 行動喚起 | UC-02, UC-03, UC-04 | M01, M02, E03, A03 | SCR-04, SCR-05 | DD-05 | TC-U03, TC-I01, TC-I02, TC-S02, TC-S03, TC-R02 | 初期 |
 | FR-08 問い合わせ手段 | UC-03 | C01, M02, A02 | SCR-05 / EIF-01 | DD-06, DD-11, DD-16 | TC-U05, TC-I02, TC-S02, TC-N14 | 初期 |
@@ -78,7 +78,7 @@ flowchart LR
 | UC | コールチェーン | 構成要素 |
 | --- | --- | --- |
 | UC-01 能力を知る | CC-01, CC-02, CC-05 | C01, M01, M02, E01, E02, A01, A03, U02 |
-| UC-02 プロダクトを検討する | CC-01, CC-03 | C01, M01, E01, E02, E03, A01, A03, U02 |
+| UC-02 サービスを検討する | CC-01, CC-03 | C01, M01, E01, E02, E03, A01, A03, U02 |
 | UC-03 問い合わせる | CC-04 | C01, M02, E03, A01, A02, U02 |
 | UC-04 外部の場へ移る | CC-03, CC-05 | C01, M01, M02, E03, A03, A04（将来） |
 | UC-05 更新して公開する | CC-06 | C02, A01（スキーマ検証）、RES-06 |
@@ -103,7 +103,7 @@ flowchart LR
 
 | 構成要素 | 要件 | 変動性 | コールチェーン | 詳細設計 | テスト |
 | --- | --- | --- | --- | --- | --- |
-| CMP-C01 Pages | FR-01〜FR-10, FR-12、NFR-01〜05, 10, 15, 16, 17 | VOL-10 | CC-01〜CC-05 | DD-11 | TC-S01〜S05, S08, S09、TC-N01〜N05, N11〜N14 |
+| CMP-C01 Pages | FR-01〜FR-10, FR-12、NFR-01〜05, 10, 15, 16, 17 | VOL-10 | CC-01〜CC-05 | DD-11 | TC-S01〜S05, S08〜S10、TC-N01〜N05, N11〜N14 |
 | CMP-C02 運営者の環境 | FR-13、NFR-06 | — | CC-06 | DD-13 | TC-S06, TC-N06 |
 | CMP-M01 ShowcaseManager | FR-01〜FR-07, FR-09 | VOL-11 | CC-01〜CC-03 | DD-09 | TC-I01 |
 | CMP-M02 EngagementManager | FR-07, FR-08, FR-10, FR-11、NFR-15 | VOL-11 | CC-04, CC-05 | DD-09 | TC-I02 |

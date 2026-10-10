@@ -50,7 +50,10 @@ export interface Curatable {
 export interface SkillGroup { name: string; order: number; skills: Skill[] }
 export interface Skill extends Curatable { name: string; description?: string }
 
+export type WorkKind = "client" | "personal" | "sample";   // 受託 / 個人制作 / サンプル（FR-03）
+
 export interface Work extends Curatable {
+  kind: WorkKind;
   title: string;
   summary: string;
   url?: string;
@@ -65,7 +68,7 @@ export type CtaSpec =
   | { route: "inquiry" }
   | { route: "channel"; channelId: string; label?: string };
 
-export interface ProductRecord extends Curatable {
+export interface ServiceRecord extends Curatable {
   slug: string;
   title: string;
   summary: string;
@@ -84,7 +87,7 @@ export interface CurationRule { featuredLimit: number; sort: "order" | "date-des
 
 export interface PresentationSettings {
   pricePolicy: PricePolicy;
-  curation: { skills: CurationRule; works: CurationRule; products: CurationRule };
+  curation: { skills: CurationRule; works: CurationRule; services: CurationRule };
 }
 
 export interface Channel {
@@ -101,7 +104,7 @@ export type InquiryChannel =
   | { kind: "link"; url: string; label: string; note?: string };
 
 export interface InquiryField {
-  name: "name" | "replyTo" | "product" | "message";
+  name: "name" | "replyTo" | "service" | "message";
   label: string;
   required: boolean;
 }
@@ -120,7 +123,7 @@ export interface PriceDisplay {
 }
 
 export type CallToAction =
-  | { route: "inquiry"; href: string; label: string }    // href = "/contact/?product={slug}"
+  | { route: "inquiry"; href: string; label: string }    // href = "/contact/?service={slug}"
   | { route: "external"; href: string; label: string; channelId: string };
 ```
 
@@ -136,19 +139,19 @@ export interface PageMeta {
 export interface LayoutView { siteName: string; copyright: string; analytics: AnalyticsTag | null }
 export interface HomeView {
   meta: PageMeta; profile: OperatorProfile;
-  featuredSkills: Skill[]; featuredWorks: Work[]; featuredProducts: ProductCard[];
+  featuredSkills: Skill[]; featuredWorks: Work[]; featuredServices: ServiceCard[];
 }
 export interface AboutView { meta: PageMeta; profile: OperatorProfile; skillGroups: SkillGroup[]; works: Work[] }
-export interface ProductCard { slug: string; title: string; summary: string; price: PriceDisplay; href: string }
-export interface ProductCatalogView { meta: PageMeta; products: ProductCard[] }
-export interface ProductDetailView {
+export interface ServiceCard { slug: string; title: string; summary: string; price: PriceDisplay; href: string }
+export interface ServiceCatalogView { meta: PageMeta; services: ServiceCard[] }
+export interface ServiceDetailView {
   meta: PageMeta; slug: string; title: string; summary: string;
   audience: string[]; deliverables: string[]; body: Markdown;
   price: PriceDisplay; leadTime?: string; cta: CallToAction;
 }
 export interface ContactView {
   meta: PageMeta; channel: InquiryChannel;
-  productOptions: { slug: string; title: string }[];
+  serviceOptions: { slug: string; title: string }[];
   cspSources: { formAction: string[]; frameSrc: string[] };   // DD-16
 }
 export interface ChannelLinkView { label: string; url: string; icon: string }
@@ -164,9 +167,9 @@ export interface ShowcaseManager {
   getLayoutView(): Promise<LayoutView>;
   getHomeView(): Promise<HomeView>;
   getAboutView(): Promise<AboutView>;
-  getProductCatalogView(): Promise<ProductCatalogView>;
-  listProductSlugs(): Promise<string[]>;
-  getProductDetailView(slug: string): Promise<ProductDetailView>;
+  getServiceCatalogView(): Promise<ServiceCatalogView>;
+  listServiceSlugs(): Promise<string[]>;
+  getServiceDetailView(slug: string): Promise<ServiceDetailView>;
 }
 export interface EngagementManager {
   getChannelLinks(): Promise<ChannelLinkView[]>;
@@ -178,13 +181,13 @@ export interface CurationEngine {
   pickFeatured<T extends Curatable>(items: T[], rule: CurationRule): T[];
   arrange<T extends Curatable>(items: T[], rule: CurationRule): T[];
 }
-export interface CtaEngine { decideForProduct(product: ProductRecord): Promise<CallToAction> }
+export interface CtaEngine { decideForService(service: ServiceRecord): Promise<CallToAction> }
 export interface ContentAccess {
   getOperatorProfile(): Promise<OperatorProfile>;
   listSkillGroups(): Promise<SkillGroup[]>;
   listWorks(): Promise<Work[]>;
-  listOfferedProducts(): Promise<ProductRecord[]>;
-  findOfferedProduct(slug: string): Promise<ProductRecord | undefined>;
+  listOfferedServices(): Promise<ServiceRecord[]>;
+  findOfferedService(slug: string): Promise<ServiceRecord | undefined>;
   getPresentationSettings(): Promise<PresentationSettings>;
 }
 export interface InquiryAccess { getInquiryChannel(): Promise<InquiryChannel> }
@@ -209,9 +212,9 @@ Astro の Content Collections（`src/content.config.ts`）で zod スキーマ�
 | --- | --- | --- | --- |
 | `profile` | `src/content/profile.yaml` | YAML（1 件） | displayName, tagline, avatar{src, alt}, bio |
 | `skills` | `src/content/skills.yaml` | YAML（分類の配列） | name, order, skills[{id, name, description?, featured, order}] |
-| `works` | `src/content/works/*.md` | Markdown + frontmatter | title, summary, url?, date, featured, order, draft |
-| `products` | `src/content/products/*.md` | Markdown + frontmatter | title, summary, audience[], deliverables[], price, priceNote?, leadTime?, cta, featured, order, draft |
-| `presentation` | `src/content/settings/presentation.yaml` | YAML | pricePolicy, curation{skills, works, products} |
+| `works` | `src/content/works/*.md` | Markdown + frontmatter | kind, title, summary, url?, date, featured, order, draft |
+| `services` | `src/content/services/*.md` | Markdown + frontmatter | title, summary, audience[], deliverables[], price, priceNote?, leadTime?, cta, featured, order, draft |
+| `presentation` | `src/content/settings/presentation.yaml` | YAML | pricePolicy, curation{skills, works, services} |
 
 ### 検証規則
 
@@ -220,28 +223,42 @@ Astro の Content Collections（`src/content.config.ts`）で zod スキーマ�
 | slug | ファイル名から作る。`^[a-z0-9]+(-[a-z0-9]+)*$` |
 | price | `kind` が `fixed` / `from` なら `amount` は 0 以上の整数。`quote` なら `amount` を書かない |
 | cta | `route: channel` なら `channelId` が必須（存在するかどうかは CtaEngine が確かめる。DD-05） |
+| kind | 制作例では必須。`client` / `personal` / `sample` のどれか（省略させないことで、サンプルを受託実績と取り違えて載せることを防ぐ） |
 | featured / order | 省略時は `false` / `100` |
-| draft | `true` のものは `listOfferedProducts` と `listWorks` に含めない |
+| draft | `true` のものは `listOfferedServices` と `listWorks` に含めない |
 | 画像 | `avatar.alt` は必須（NFR-03） |
 | 文字数 | `summary` は 120 字以内、`title` は 40 字以内（description や OGP に使うため） |
 
 違反があれば `astro build` が失敗する（FR-14、DD-14）。
 
-### プロダクトの例
+### サービスの例
 
 ```markdown
 ---
-title: "業務自動化スクリプトの作成"
-summary: "Excel や Google スプレッドシートの手作業を自動化します。"
-audience: ["毎月同じ集計をしている方"]
-deliverables: ["スクリプト一式", "使い方の説明書"]
-price: { kind: "from", amount: 10000, unit: "件" }
-leadTime: "1〜2 週間"
+title: "ホームページ・モックの制作"
+summary: "個人や小さなお店のホームページ、アプリ画面のモックを作ります。"
+audience: ["自分のホームページがほしい方", "アイデアを画面の形で確認したい方"]
+deliverables: ["公開できるサイト一式、またはモック", "更新方法の説明"]
+price: { kind: "quote" }
+leadTime: "要相談"
 cta: { route: "inquiry" }
 featured: true
 order: 10
 ---
 本文（Markdown）
+```
+
+### 制作例の例
+
+```markdown
+---
+kind: personal
+title: "このホームページ"
+summary: "Astro で作った自分のホームページ。設計書からテストまで公開しています。"
+url: https://github.com/fukugyononuko/fukugyononuko.github.io
+date: 2026-10-11
+featured: true
+---
 ```
 
 ## 3.3 DD-03 価格表示のアルゴリズム（PricingEngine）
@@ -272,10 +289,10 @@ order: 10
 
 ## 3.5 DD-05 導線の決め方（CtaEngine）
 
-`decideForProduct(product)`：
+`decideForService(service)`：
 
-1. `product.cta.route` が `"inquiry"` なら
-   `{ route: "inquiry", href: "/contact/?product={slug}", label: "このプロダクトについて問い合わせる" }`
+1. `service.cta.route` が `"inquiry"` なら
+   `{ route: "inquiry", href: "/contact/?service={slug}", label: "このサービスについて問い合わせる" }`
 2. `"channel"` なら、`ChannelAccess.findChannel(channelId)` でチャネルを探す。
    - 見つかれば `{ route: "external", href: channel.url, label: cta.label ?? "{channel.label}で見る", channelId }`
    - 見つからなければ `UnknownChannelError` を投げる（ビルド失敗。DD-14）。
@@ -293,7 +310,7 @@ note: 2〜3 日以内に返信します。
 fields:
   - { name: name,    label: お名前（任意）, required: false }
   - { name: replyTo, label: 返信先,        required: true }
-  - { name: product, label: 対象プロダクト, required: false }
+  - { name: service, label: 対象サービス, required: false }
   - { name: message, label: ご相談内容,    required: true }
 ```
 
@@ -331,8 +348,8 @@ label: X の DM で問い合わせる
 ## 3.9 DD-09 Manager の実装方針
 
 - Manager は手順（どれを呼び、どう組み合わせるか）だけを持つ。価格の計算や並べ替えのような判断は Engine に任せる。
-- `getProductDetailView(slug)` は、該当するプロダクトがなければ `ProductNotFoundError` を投げる。`listProductSlugs` と同じデータを使うので、通常は起きない。
-- `getContactView` の `productOptions` は、CtaEngine の判定が `inquiry` になるプロダクトだけにする（02b §2b.2）。
+- `getServiceDetailView(slug)` は、該当するサービスがなければ `ServiceNotFoundError` を投げる。`listServiceSlugs` と同じデータを使うので、通常は起きない。
+- `getContactView` の `serviceOptions` は、CtaEngine の判定が `inquiry` になるサービスだけにする（02b §2b.2）。
 - ビルド中に同じリソースを何度も読まないよう、ResourceAccess の結果をビルドの間だけメモ化してよい。メモ化は ResourceAccess の内部で行い、Manager は気にしない。
 
 ## 3.10 DD-10 Utility
@@ -350,15 +367,17 @@ label: X の DM で問い合わせる
 | SCR-00 | `src/layouts/BaseLayout.astro`、`src/components/{Header,Footer,Meta}.astro` | `getLayoutView`、`getChannelLinks` |
 | SCR-01 | `src/pages/index.astro` | `getHomeView` |
 | SCR-02 | `src/pages/about.astro` | `getAboutView` |
-| SCR-03 | `src/pages/products/index.astro` | `getProductCatalogView` |
-| SCR-04 | `src/pages/products/[slug].astro`（`getStaticPaths` で `listProductSlugs` を使う） | `getProductDetailView` |
+| SCR-03 | `src/pages/services/index.astro` | `getServiceCatalogView` |
+| SCR-04 | `src/pages/services/[slug].astro`（`getStaticPaths` で `listServiceSlugs` を使う） | `getServiceDetailView` |
 | SCR-05 | `src/pages/contact.astro`、`src/components/inquiry/{FormPost,Embed,Link}.astro`、`src/scripts/contact-prefill.ts` | `getContactView` |
 | SCR-06 | `src/pages/404.astro` | `getLayoutView` だけ |
 
 - スタイルは `src/styles/tokens.css`（色・余白・文字の CSS 変数）と、各コンポーネントの scoped CSS。ダークモードは `prefers-color-scheme` で CSS 変数を切り替える（NFR-05）。
-- 閲覧時の JavaScript は `contact-prefill.ts` だけ（NFR-10）。`?product=` の値が `productOptions` にあるときだけ選択欄に反映する。値を HTML として書き込まない（NFR-15）。
+- 閲覧時の JavaScript は `contact-prefill.ts` だけ（NFR-10）。`?service=` の値が `serviceOptions` にあるときだけ選択欄に反映する。値を HTML として書き込まない（NFR-15）。
 - 外部リンクは共通コンポーネント `ExternalLink.astro` だけで出力し、`target="_blank" rel="noopener noreferrer"` を必ず付ける（NFR-16）。
 - Markdown 本文の描画は Client で行う。
+- 制作例の種類ラベルは Client が持つ（`client` → 受託、`personal` → 個人制作、`sample` → サンプル）。ラベルは省略せず、すべての制作例に表示する（FR-03）。
+- 制作例が 0 件ならその欄を出さない。サービスが 0 件なら「準備中です」と問い合わせへの誘導を出す（FR-03、FR-04）。
 
 ## 3.12 DD-12 依存規則の検査
 
@@ -399,8 +418,8 @@ label: X の DM で問い合わせる
 | コンテンツのスキーマ違反 | CMP-A01（Astro の Content Collections） | ビルド失敗。ファイル名と項目を表示する（FR-14） |
 | `InvalidInquiryConfigError` | CMP-A02 | ビルド失敗 |
 | チャネル設定の不正 | CMP-A03 | ビルド失敗 |
-| `UnknownChannelError` | CMP-E03 | ビルド失敗。プロダクトの slug と channelId を表示する |
-| `ProductNotFoundError` | CMP-M01 | ビルド失敗 |
+| `UnknownChannelError` | CMP-E03 | ビルド失敗。サービスの slug と channelId を表示する |
+| `ServiceNotFoundError` | CMP-M01 | ビルド失敗 |
 | 記事の取得失敗（将来） | CMP-A04 | 警告だけ。空の一覧で続ける |
 | 依存規則違反 | DD-12 | CI 失敗。公開しない（NFR-09） |
 
@@ -423,7 +442,7 @@ label: X の DM で問い合わせる
 │   │   ├── profile.yaml
 │   │   ├── skills.yaml
 │   │   ├── works/*.md
-│   │   ├── products/*.md
+│   │   ├── services/*.md
 │   │   └── settings/{presentation,inquiry,channels}.yaml
 │   ├── pages/                            CMP-C01
 │   ├── layouts/                          CMP-C01
