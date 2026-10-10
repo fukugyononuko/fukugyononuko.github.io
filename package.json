@@ -1,0 +1,33 @@
+{
+  "name": "fukugyononuko-homepage",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "engines": {
+    "node": ">=24"
+  },
+  "scripts": {
+    "dev": "astro dev",
+    "build": "astro build",
+    "preview": "astro preview",
+    "lint": "astro check",
+    "depcruise": "depcruise src --config .dependency-cruiser.cjs && node scripts/check-astro-imports.mjs",
+    "check:workflows": "node scripts/check-workflows.mjs",
+    "test": "vitest run",
+    "test:e2e": "playwright test"
+  },
+  "dependencies": {
+    "@astrojs/sitemap": "^3.7.4",
+    "astro": "^7.3.8"
+  },
+  "devDependencies": {
+    "@astrojs/check": "^0.9.10",
+    "@playwright/test": "^1.64.0",
+    "dependency-cruiser": "^18.5.0",
+    "typescript": "^6.0.3",
+    "vitest": "^5.0.3"
+  },
+  "allowScripts": {
+    "fsevents": false
+  }
+}

@@ -1,0 +1,23 @@
+---
+// CMP-C01 Pages / SCR-01 トップ（DD-11）
+// フェーズ 1 の仮ページ。フェーズ 3 で ShowcaseManager.getHomeView() を使う形に置き換える。
+import BaseLayout from "../layouts/BaseLayout.astro";
+---
+<BaseLayout title="副業のぬこ" description="副業のぬこのホームページです。現在準備中です。">
+  <main class="placeholder">
+    <h1>副業のぬこ</h1>
+    <p>ホームページを準備中です。</p>
+  </main>
+</BaseLayout>
+
+<style>
+  .placeholder {
+    max-width: 40rem;
+    margin: 0 auto;
+    padding: 4rem 1rem;
+    text-align: center;
+  }
+  p {
+    color: var(--color-muted);
+  }
+</style>

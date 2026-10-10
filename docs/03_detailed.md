@@ -381,16 +381,20 @@ label: X の DM で問い合わせる
 
 ## 3.12 DD-12 依存規則の検査
 
-`.dependency-cruiser.cjs` で 01 §1.6 の R1〜R7 を検査する。
+`.dependency-cruiser.cjs` で 01 §1.6 の R1〜R7 を検査する。dependency-cruiser は `.astro` ファイルを解析できないため、`.astro` の import は `scripts/check-astro-imports.mjs` で R1 を検査する。`npm run depcruise` が両方を実行する。
 
 | 規則 | from | 禁止する to |
 | --- | --- | --- |
-| R1 | `src/(pages\|layouts\|components\|scripts)/` | `src/system/(engines\|resource-access)/`、`src/content/` |
+| R1 | `src/(pages\|layouts\|components\|scripts\|styles)/` | `src/system/`（`compose.ts` と `contracts/` を除く）、`src/content/`、`src/content.config.ts`、`astro:content` |
 | R3 | `src/system/managers/X` | `src/system/managers/`（X 以外） |
 | R4 | `src/system/engines/X` | `src/system/engines/`（X 以外）、`src/system/managers/` |
 | R5 | `src/system/resource-access/X` | `src/system/resource-access/`（X 以外）、`engines/`、`managers/` |
-| R6 | `src/system/(engines\|resource-access\|utilities)/` | `src/system/managers/` |
+| R6 | `src/system/` | Client（`src/(pages\|layouts\|components\|scripts\|styles)/`）。上位の層への呼び出しは R4・R5・R7 で禁止している |
 | R7 | `src/system/utilities/` | `src/system/(managers\|engines\|resource-access)/` |
+| R9 | `src/system/contracts/` | `src/` の `contracts/` 以外（契約は他の層に依存しない） |
+| — | すべて | 循環参照 |
+
+- 規則が空振りしていないことを、違反をわざと含むフィクスチャ（`tests/architecture/fixtures/violations`）と、許可された呼び出しだけのフィクスチャ（`fixtures/valid`）で確かめる（TC-A01）。
 
 - `contracts/` はどこからでも import してよい。
 - R2 は許可の規則なので、検査は R1 と R3〜R7 の禁止で足りる。
@@ -402,7 +406,7 @@ label: X の DM で問い合わせる
 
 | ジョブ | きっかけ | 手順 |
 | --- | --- | --- |
-| `check` | すべての push と PR | `npm ci` → `npm audit --audit-level=high`（TC-N09）→ `npm run lint` → `npm run depcruise`（TC-A01）→ `npm test`（TC-U、TC-I） |
+| `check` | すべての push と PR | `npm ci` → `npm audit --audit-level=high`（TC-N09）→ `npm run check:workflows`（TC-N10）→ `npm run lint`（`astro check` による型検査）→ `npm run depcruise`（TC-A01）→ `npm test`（TC-U、TC-I、TC-A01） |
 | `build` | `check` の成功後 | `npm run build`（スキーマ検証を含む）→ `npm run test:e2e`（TC-S）→ Lighthouse CI（TC-N01）→ `actions/upload-pages-artifact` |
 | `deploy` | `main` で `build` の成功後 | `actions/deploy-pages` |
 
@@ -436,6 +440,7 @@ label: X の DM で問い合わせる
 ├── astro.config.mjs                      CMP-U01 の値の元
 ├── docs/                                 設計ドキュメント
 ├── public/                               favicon、og-default.png、robots.txt
+├── scripts/                              check-astro-imports.mjs（DD-12）、check-workflows.mjs（TC-N10）
 ├── src/
 │   ├── content.config.ts                 DD-02（CMP-A01 の内部）
 │   ├── content/                          RES-01〜03
@@ -472,6 +477,7 @@ label: X の DM で問い合わせる
     ├── unit/                             TC-U
     ├── integration/                      TC-I
     ├── e2e/                              TC-S
+    ├── architecture/                     TC-A01（規則の検査とフィクスチャ）
     └── fixtures/                         テスト用のコンテンツ
 ```
 

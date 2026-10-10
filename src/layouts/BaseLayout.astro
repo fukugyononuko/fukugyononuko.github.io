@@ -1,0 +1,45 @@
+---
+// CMP-C01 Pages / SCR-00 共通レイアウト（DD-11）
+// フェーズ 1 の仮実装。Manager からの View の受け取りとメタ情報・CSP はフェーズ 2〜3 で入れる。
+interface Props {
+  title: string;
+  description: string;
+}
+const { title, description } = Astro.props;
+---
+<!doctype html>
+<html lang="ja">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>{title}</title>
+    <meta name="description" content={description} />
+    <link rel="canonical" href={new URL(Astro.url.pathname, Astro.site)} />
+    <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+    <style is:global>
+      :root {
+        --color-bg: #fffaf3;
+        --color-text: #2b2420;
+        --color-muted: #6b5f57;
+        color-scheme: light dark;
+      }
+      @media (prefers-color-scheme: dark) {
+        :root {
+          --color-bg: #1f1b18;
+          --color-text: #f3ece6;
+          --color-muted: #b8aca3;
+        }
+      }
+      body {
+        margin: 0;
+        background: var(--color-bg);
+        color: var(--color-text);
+        font-family: system-ui, -apple-system, "Hiragino Sans", "Noto Sans JP", sans-serif;
+        line-height: 1.7;
+      }
+    </style>
+  </head>
+  <body>
+    <slot />
+  </body>
+</html>
