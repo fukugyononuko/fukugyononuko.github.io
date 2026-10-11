@@ -8,7 +8,7 @@
 | 結合 | TC-I | Manager と、偽物に差し替えた ResourceAccess | Vitest | CI（`check`） |
 | アーキテクチャ | TC-A | 依存規則 | dependency-cruiser | CI（`check`） |
 | 総合 | TC-S | ビルド結果のサイト全体 | Playwright | CI（`build`） |
-| 非機能 | TC-N | 性能、アクセシビリティ、SEO など | Lighthouse CI、axe、Playwright | CI（`build`） |
+| 非機能 | TC-N | 性能、アクセシビリティ、SEO など | Lighthouse（`scripts/lighthouse.mjs`）、axe、Playwright、検査スクリプト | CI（`check`、`build`） |
 | 変動性シナリオ | TC-R | 変動性を閉じ込められているか | 設計レビュー | 設計を変える PR のたび |
 
 ## 4.2 単体テスト（TC-U）
@@ -57,12 +57,12 @@
 
 | ID | 確認すること | NFR |
 | --- | --- | --- |
-| TC-N01 | Lighthouse（モバイル）で、全画面の Performance、Accessibility、SEO が 90 以上 | NFR-02, NFR-03, NFR-04 |
+| TC-N01 | Lighthouse（モバイル）で、全画面の Performance、Accessibility、Best Practices、SEO が 90 以上（3 回の中央値）。`@lhci/cli` は依存に既知の脆弱性を含むため使わない | NFR-02, NFR-03, NFR-04 |
 | TC-N02 | axe で重大（critical / serious）な違反が 0 件 | NFR-03 |
 | TC-N03 | 全画面で title・description・canonical・OGP が固有であること。sitemap と robots.txt が出力されること | NFR-04 |
 | TC-N04 | 幅 360px で横スクロールが発生しないこと | NFR-01 |
 | TC-N05 | `prefers-color-scheme: dark` でダークテーマの色が使われること | NFR-05 |
-| TC-N06 | 個人情報の確認：コンテンツに BR-06 の情報がないこと、コミットの作者が noreply アドレスであること（リリース前に手動で確認） | NFR-06 |
+| TC-N06 | 個人情報の確認（CI）：追跡しているファイルに禁止語（本名など）がないこと、コミットのアドレスが許可したものだけであること。禁止語は公開リポジトリに書かず、Secret `PRIVACY_DENYLIST` か git 管理外の `.privacy-denylist` から読む | NFR-06 |
 | TC-N07 | 運用費の確認：有料のサービスや有料プランを使っていないこと（リリース前に手動で確認） | NFR-07 |
 | TC-N08 | GitHub の設定が DD-16 の表のとおりであること（2 要素認証、ブランチ保護、Actions の権限、Dependabot、secret scanning、Enforce HTTPS）。リリース前と、設定を変えたときに手動で確認 | NFR-11, NFR-12, NFR-13, NFR-14, NFR-18 |
 | TC-N09 | `npm audit --audit-level=high` が 0 件であること（CI） | NFR-13 |
@@ -90,3 +90,10 @@ The Method では、設計の正しさは「変化が起きたときに変更が
 | TC-R09 | VOL-09 | アクセス解析を入れる | 変更が CMP-U03 の設定だけ |
 | TC-R10 | VOL-10 | 配色とフォントを変える | 変更が CMP-C01 だけ |
 | TC-R11 | VOL-11 | トップに最新記事の一覧を出す | 変更が CMP-M01 / CMP-M02 の手順と CMP-C01 だけ |
+
+## 4.8 手動の確認の記録
+
+| 日付 | ID | 結果 |
+| --- | --- | --- |
+| 2026-10-11 | TC-N07 | 有料のサービスやプランは使っていない（GitHub Pages / Actions の無料枠、Formspree の無料プラン） |
+| 2026-10-11 | TC-N08 | API で確認：secret scanning・push protection・Dependabot alerts／security updates が有効、Actions の既定の権限は読み取りのみ、`main` のブランチ保護（`check`・`build` が必須、管理者にも適用、force push と削除は禁止）、Pages は Actions から公開・HTTPS を強制。**2 要素認証は API から読めないため、ユーザーが確認する** |

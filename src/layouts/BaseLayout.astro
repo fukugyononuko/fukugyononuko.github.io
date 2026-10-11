@@ -1,7 +1,6 @@
 ---
 // CMP-C01 Pages / SCR-00 共通レイアウト（DD-11、02a §2a.4、§2a.7）
 // LayoutView（CMP-M01）と外部チャネル（CMP-M02、CC-05）を受け取って描く。
-import "@fontsource/zen-maru-gothic/500.css";
 import "@fontsource/zen-maru-gothic/700.css";
 import "../styles/tokens.css";
 import "../styles/global.css";
@@ -13,8 +12,13 @@ import type { PageMeta } from "../system/contracts";
 interface Props {
   /** 通常の画面は Manager が返す PageMeta。404 のように URL を持たない画面は title と description だけ */
   meta: PageMeta | { title: string; description: string };
+  /** CSP に足す外部のオリジン（DD-16）。問い合わせページだけが ContactView.cspSources を渡す */
+  cspSources?: { formAction: string[]; frameSrc: string[] };
 }
-const { meta } = Astro.props;
+const { meta, cspSources = { formAction: [], frameSrc: [] } } = Astro.props;
+// DD-16：ページごとの CSP。外部への送信・埋め込みは、渡されたオリジンだけを許可する（開発サーバーでは CSP が無効なので csp がない）
+Astro.csp?.insertDirective(`form-action ${["'self'", ...cspSources.formAction].join(" ")}`);
+Astro.csp?.insertDirective(`frame-src ${cspSources.frameSrc.length > 0 ? cspSources.frameSrc.join(" ") : "'none'"}`);
 const [layout, channels] = await Promise.all([showcase.getLayoutView(), engagement.getChannelLinks()]);
 const full = "canonical" in meta ? meta : null;
 const title = full ? full.title : `${meta.title} | ${layout.siteName}`;

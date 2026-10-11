@@ -10,7 +10,7 @@ import { engagement } from "../system/compose";
 const view = await engagement.getContactView();
 const { channel } = view;
 ---
-<BaseLayout meta={view.meta}>
+<BaseLayout meta={view.meta} cspSources={view.cspSources}>
   <section class="container page">
     <h1>問い合わせ</h1>
     <p class="lead">ホームページやモックの制作、データ解析のご相談を受け付けています。まだ内容が固まっていなくても大丈夫です。</p>
