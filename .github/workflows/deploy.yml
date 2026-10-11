@@ -38,6 +38,8 @@ jobs:
         run: npm run check:privacy
         env:
           PRIVACY_DENYLIST: ${{ secrets.PRIVACY_DENYLIST }}
+          # 式をシェルに直接埋め込まず、環境変数として渡す（PR の本文によるコマンドの注入を防ぐ）
+          PR_TEXT: ${{ github.event.pull_request.title }} ${{ github.event.pull_request.body }}
       - name: Type check
         run: npm run lint
       - name: Dependency rules (TC-A01)
