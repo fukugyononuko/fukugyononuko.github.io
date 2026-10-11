@@ -1,6 +1,6 @@
 // DD-01 契約：Manager が Client に返す View
 import type { CallToAction, PriceDisplay } from "./engine-results";
-import type { Article, InquiryChannel, Markdown, OperatorProfile, Skill, SkillGroup, Work } from "./records";
+import type { Article, ImageRef, InquiryChannel, OperatorProfile, TrustedHtml, Skill, SkillGroup, Work } from "./records";
 
 export interface PageMeta {
   title: string;
@@ -19,6 +19,7 @@ export interface AnalyticsTag {
 
 export interface LayoutView {
   siteName: string;
+  avatar: ImageRef;
   copyright: string;
   analytics: AnalyticsTag | null;
 }
@@ -58,7 +59,7 @@ export interface ServiceDetailView {
   summary: string;
   audience: string[];
   deliverables: string[];
-  body: Markdown;
+  body: TrustedHtml;
   price: PriceDisplay;
   leadTime?: string;
   cta: CallToAction;

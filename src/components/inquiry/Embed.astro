@@ -1,0 +1,31 @@
+---
+// CMP-C01 問い合わせ手段：embed（02a §2a.5、DD-06、NFR-16）
+import type { InquiryChannel } from "../../system/contracts";
+import ExternalLink from "../ExternalLink.astro";
+interface Props {
+  channel: Extract<InquiryChannel, { kind: "embed" }>;
+}
+const { channel } = Astro.props;
+---
+<iframe
+  class="embed"
+  src={channel.src}
+  title="問い合わせフォーム"
+  loading="lazy"
+  sandbox="allow-forms allow-scripts allow-same-origin allow-popups"
+></iframe>
+<p class="fallback">フォームが表示されない場合は<ExternalLink href={channel.fallbackUrl}>こちらから開いてください</ExternalLink>。</p>
+
+<style>
+  .embed {
+    width: 100%;
+    min-height: 40rem;
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-m);
+    background: var(--color-surface);
+  }
+  .fallback {
+    color: var(--color-text-muted);
+    font-size: 0.875rem;
+  }
+</style>

@@ -1,8 +1,53 @@
 ---
-// CMP-C01 Pages（DD-11）。フェーズ 2 の仮ページ。フェーズ 3 で本実装に置き換える。
+// CMP-C01 Pages / SCR-05 問い合わせ（DD-11、CC-04、FR-08）
+// 問い合わせ手段の種類ごとの描き分けだけを持つ。手段そのものは InquiryAccess（CMP-A02）が決める。
 import BaseLayout from "../layouts/BaseLayout.astro";
-import ComingSoon from "../components/ComingSoon.astro";
+import FormPost from "../components/inquiry/FormPost.astro";
+import Embed from "../components/inquiry/Embed.astro";
+import Link from "../components/inquiry/Link.astro";
+import { engagement } from "../system/compose";
+
+const view = await engagement.getContactView();
+const { channel } = view;
 ---
-<BaseLayout title="問い合わせ | 副業のぬこ" description="副業のぬこの（準備中）。">
-  <ComingSoon heading="問い合わせ" />
+<BaseLayout meta={view.meta}>
+  <section class="container page">
+    <h1>問い合わせ</h1>
+    <p class="lead">ホームページやモックの制作、データ解析のご相談を受け付けています。まだ内容が固まっていなくても大丈夫です。</p>
+    {channel.note && <p class="note">{channel.note}</p>}
+    <div class="channel">
+      {channel.kind === "form-post" && <FormPost channel={channel} serviceOptions={view.serviceOptions} />}
+      {channel.kind === "embed" && <Embed channel={channel} />}
+      {channel.kind === "link" && <Link channel={channel} />}
+    </div>
+  </section>
 </BaseLayout>
+
+<script>
+  import "../scripts/contact-prefill";
+</script>
+
+<style>
+  .page {
+    max-width: 40rem;
+    padding-block: var(--space-12);
+  }
+  h1 {
+    margin: 0 0 var(--space-2);
+    font-size: clamp(1.75rem, 5vw, 2.25rem);
+  }
+  .lead {
+    margin: 0 0 var(--space-4);
+    color: var(--color-text-muted);
+  }
+  .note {
+    margin: 0 0 var(--space-6);
+    padding: var(--space-3) var(--space-4);
+    border-left: 4px solid var(--color-grass);
+    background: var(--color-sunken);
+    border-radius: var(--radius-s);
+  }
+  .channel {
+    margin-top: var(--space-6);
+  }
+</style>

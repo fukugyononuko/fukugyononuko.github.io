@@ -1,0 +1,7 @@
+# RES-01 表示設定（DD-02、DD-03、DD-04）
+# pricePolicy: as-is（そのまま）/ from-only（「〜円から」に統一）/ hide（すべて「お見積もり」）
+pricePolicy: as-is
+curation:
+  skills: { featuredLimit: 3, sort: order }
+  works: { featuredLimit: 3, sort: date-desc }
+  services: { featuredLimit: 3, sort: order }

@@ -1,0 +1,52 @@
+---
+// CMP-C01 Pages / SCR-03 サービス一覧（DD-11、CC-03、FR-04、FR-06）
+import BaseLayout from "../../layouts/BaseLayout.astro";
+import Button from "../../components/Button.astro";
+import ServiceCard from "../../components/ServiceCard.astro";
+import { showcase } from "../../system/compose";
+
+const view = await showcase.getServiceCatalogView();
+---
+<BaseLayout meta={view.meta}>
+  <section class="container page">
+    <h1>サービス</h1>
+    {view.services.length > 0 ? (
+      <>
+        <p class="lead">ご相談の内容に合わせて進め方を決めます。気になるものがあれば、お気軽にお問い合わせください。</p>
+        <ul class="cards">
+          {view.services.map((s) => <li><ServiceCard service={s} headingLevel={2} /></li>)}
+        </ul>
+      </>
+    ) : (
+      <div class="empty">
+        <p>サービスは準備中です。ご相談はお問い合わせからどうぞ。</p>
+        <Button href="/contact/">問い合わせる</Button>
+      </div>
+    )}
+  </section>
+</BaseLayout>
+
+<style>
+  .page {
+    padding-block: var(--space-12);
+  }
+  h1 {
+    margin: 0 0 var(--space-2);
+    font-size: clamp(1.75rem, 5vw, 2.25rem);
+  }
+  .lead {
+    margin: 0 0 var(--space-8);
+    color: var(--color-text-muted);
+  }
+  .cards {
+    display: grid;
+    gap: var(--space-4);
+    grid-template-columns: repeat(auto-fit, minmax(16rem, 1fr));
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+  .empty p {
+    color: var(--color-text-muted);
+  }
+</style>

@@ -20,11 +20,13 @@
   "dependencies": {
     "@astrojs/sitemap": "^3.7.4",
     "@fontsource/zen-maru-gothic": "^5.3.0",
-    "astro": "^7.3.8"
+    "astro": "^7.3.8",
+    "js-yaml": "^4.3.2"
   },
   "devDependencies": {
     "@astrojs/check": "^0.9.10",
     "@playwright/test": "^1.64.0",
+    "@types/js-yaml": "^4.0.9",
     "dependency-cruiser": "^18.5.0",
     "typescript": "^6.0.3",
     "vitest": "^5.0.3"

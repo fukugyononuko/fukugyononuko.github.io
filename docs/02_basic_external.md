@@ -55,7 +55,7 @@ flowchart LR
 | --- | --- | --- |
 | サイト名 | 表示名。トップへのリンク | `ShowcaseManager.getLayoutView` |
 | ナビゲーション | About / サービス / 問い合わせ | Client で固定 |
-| 外部チャネルのリンク | アイコンとラベル。新しいタブで開く（`rel="noopener"`） | `EngagementManager.getChannelLinks` |
+| 外部チャネルのリンク | アイコンとラベル。新しいタブで開く（`rel="noopener noreferrer"`） | `EngagementManager.getChannelLinks` |
 | コピーライト | `© {年} {表示名}` | `ShowcaseManager.getLayoutView` |
 | メタ情報 | title、description、canonical、OGP、Twitter Card | 各画面の View に含まれる `meta`（CMP-U02） |
 | アクセス解析タグ | 設定があるときだけ出力 | CMP-U03 |
@@ -221,7 +221,9 @@ flowchart LR
 | `Footer.astro` | 外部チャネルのリンク、コピーライト |
 | `Button.astro` | ボタン型のリンク（主要 / 補助の 2 種類） |
 | `ExternalLink.astro` | 外部リンクを出す唯一の部品（NFR-16） |
-| `ComingSoon.astro` | 準備中のページの本文（フェーズ 3 で各画面に置き換える） |
+| `Section.astro` | 見出しつきのセクション |
+| `ServiceCard.astro`、`WorkList.astro` | サービスのカード、制作例の一覧（種類のラベルつき） |
+| `inquiry/{FormPost,Embed,Link}.astro` | 問い合わせ手段の種類ごとの表示（§2a.5） |
 
 レイアウトの決まり：
 

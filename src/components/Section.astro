@@ -1,0 +1,37 @@
+---
+// CMP-C01 見出しつきのセクション
+interface Props {
+  id: string;
+  heading: string;
+  lead?: string;
+}
+const { id, heading, lead } = Astro.props;
+---
+<section class="section container" aria-labelledby={id}>
+  <h2 id={id}>{heading}</h2>
+  {lead && <p class="lead">{lead}</p>}
+  <slot />
+</section>
+
+<style>
+  .section {
+    padding-block: var(--space-8);
+  }
+  h2 {
+    margin: 0 0 var(--space-2);
+    font-size: 1.5rem;
+  }
+  h2::after {
+    content: "";
+    display: block;
+    width: 2rem;
+    height: 0.25rem;
+    margin-top: var(--space-2);
+    border-radius: var(--radius-full);
+    background: var(--color-grass);
+  }
+  .lead {
+    margin: 0 0 var(--space-6);
+    color: var(--color-text-muted);
+  }
+</style>

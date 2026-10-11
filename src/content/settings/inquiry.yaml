@@ -1,0 +1,6 @@
+# RES-02 問い合わせ手段（DD-06）。手段が決まるまでの仮の設定（OPEN-01）。
+# kind: form-post（フォームから送信）/ embed（外部フォームの埋め込み）/ link（外部の連絡先へのリンク）
+kind: link
+url: https://github.com/fukugyononuko
+label: GitHub のプロフィールを見る
+note: 問い合わせの窓口は準備中です。開設まで少しお待ちください。

@@ -1,8 +1,9 @@
 ---
 // CMP-C01 / SCR-00 共通レイアウト：フッター（02a §2a.4、FR-10）
-// channels は EngagementManager.getChannelLinks() の結果を受け取る（フェーズ 3 で接続）。
+// channels は EngagementManager.getChannelLinks() の結果（CC-05）。
 import type { ChannelLinkView } from "../system/contracts";
 import ExternalLink from "./ExternalLink.astro";
+import Icon from "./Icon.astro";
 
 interface Props {
   copyright: string;
@@ -19,7 +20,7 @@ const { copyright, channels } = Astro.props;
       {channels.length > 0 && (
         <ul class="channels">
           {channels.map((c) => (
-            <li><ExternalLink href={c.url}>{c.label}</ExternalLink></li>
+            <li><ExternalLink class="channel" href={c.url}><Icon name={c.icon} />{c.label}</ExternalLink></li>
           ))}
         </ul>
       )}
@@ -56,6 +57,16 @@ const { copyright, channels } = Astro.props;
     margin: 0;
     padding: 0;
     list-style: none;
+  }
+  .channel {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--space-2);
+    color: var(--color-text);
+    text-decoration: none;
+  }
+  .channel:hover {
+    color: var(--color-sea);
   }
   .copyright {
     margin: 0;

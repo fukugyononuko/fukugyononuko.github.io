@@ -1,0 +1,66 @@
+---
+// CMP-C01 サービスのカード（SCR-01、SCR-03）
+import type { ServiceCard } from "../system/contracts";
+interface Props {
+  service: ServiceCard;
+  headingLevel?: 2 | 3;
+}
+const { service, headingLevel = 3 } = Astro.props;
+const Heading = `h${headingLevel}` as "h2" | "h3";
+---
+<article class="card">
+  <Heading class="title"><a href={service.href}>{service.title}</a></Heading>
+  <p class="summary">{service.summary}</p>
+  <p class="price">{service.price.text}</p>
+</article>
+
+<style>
+  .card {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-2);
+    height: 100%;
+    padding: var(--space-6);
+    background: var(--color-surface);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-m);
+    box-shadow: 0 2px 12px var(--color-shadow);
+    transition: transform 0.15s;
+  }
+  .card:hover {
+    transform: translateY(-2px);
+  }
+  .title {
+    margin: 0;
+    font-size: 1.125rem;
+  }
+  .title a {
+    color: var(--color-text);
+    text-decoration: none;
+  }
+  /* カード全体をクリックできるようにする */
+  .title a::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    border-radius: var(--radius-m);
+  }
+  .title a:focus-visible {
+    outline: none;
+  }
+  .card:has(.title a:focus-visible) {
+    outline: 3px solid var(--color-sea);
+    outline-offset: 3px;
+  }
+  .summary {
+    margin: 0;
+    color: var(--color-text-muted);
+    flex-grow: 1;
+  }
+  .price {
+    margin: 0;
+    font-weight: 700;
+    color: var(--color-sea);
+  }
+</style>

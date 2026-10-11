@@ -78,6 +78,8 @@ export interface SiteConfig {
 
 /** CMP-U02 */
 export interface PageMetaInput {
+  siteName: string;
+  /** 省略するとサイト名だけのタイトルになる（トップ用） */
   title?: string;
   description: string;
   path: string;
@@ -85,5 +87,12 @@ export interface PageMetaInput {
   type?: PageMeta["ogType"];
 }
 
+/** CMP-U02 */
+export interface Seo {
+  buildPageMeta(input: PageMetaInput): PageMeta;
+}
+
 /** CMP-U03 */
-export type GetAnalyticsTag = () => Promise<AnalyticsTag | null>;
+export interface Analytics {
+  getAnalyticsTag(): Promise<AnalyticsTag | null>;
+}

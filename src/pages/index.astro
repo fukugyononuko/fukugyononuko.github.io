@@ -1,10 +1,15 @@
 ---
-// CMP-C01 Pages / SCR-01 トップ（DD-11）
-// フェーズ 2：ヒーローの見た目を確定。文言と注目項目はフェーズ 3 で ShowcaseManager.getHomeView() から受け取る。
+// CMP-C01 Pages / SCR-01 トップ（DD-11、CC-01、FR-09）
 import BaseLayout from "../layouts/BaseLayout.astro";
 import Button from "../components/Button.astro";
+import Section from "../components/Section.astro";
+import ServiceCard from "../components/ServiceCard.astro";
+import WorkList from "../components/WorkList.astro";
+import { showcase } from "../system/compose";
+
+const view = await showcase.getHomeView();
 ---
-<BaseLayout title="副業のぬこ" description="副業のぬこのホームページです。ホームページやモックの制作、データ解析のご相談を受け付けます（準備中）。">
+<BaseLayout meta={view.meta}>
   <section class="hero">
     <div class="photo">
       <img
@@ -18,23 +23,52 @@ import Button from "../components/Button.astro";
       />
     </div>
     <div class="container intro">
-      <h1>副業のぬこ</h1>
-      <p class="tagline">ホームページやモックづくり、データ解析を、<br class="pc" />ひとつずつ丁寧に。</p>
-      <p class="status">ホームページを準備中です。</p>
+      <h1>{view.profile.displayName}</h1>
+      <p class="tagline">{view.profile.tagline}</p>
       <div class="actions">
-        <Button href="/services/">できること</Button>
+        <Button href="/services/">サービスを見る</Button>
         <Button href="/contact/" variant="secondary">問い合わせる</Button>
       </div>
     </div>
   </section>
+
+  {view.featuredSkills.length > 0 && (
+    <Section id="skills" heading="できること">
+      <ul class="skills">
+        {view.featuredSkills.map((s) => (
+          <li>
+            <span class="skill-name">{s.name}</span>
+            {s.description && <span class="skill-desc">{s.description}</span>}
+          </li>
+        ))}
+      </ul>
+      <p class="more"><a href="/about/">プロフィールとできることの一覧へ</a></p>
+    </Section>
+  )}
+
+  <Section id="services" heading="サービス">
+    {view.featuredServices.length > 0 ? (
+      <ul class="cards">
+        {view.featuredServices.map((s) => <li><ServiceCard service={s} /></li>)}
+      </ul>
+    ) : (
+      <p>サービスは準備中です。ご相談は<a href="/contact/">問い合わせ</a>からどうぞ。</p>
+    )}
+    <p class="more"><a href="/services/">サービスの一覧へ</a></p>
+  </Section>
+
+  {view.featuredWorks.length > 0 && (
+    <Section id="works" heading="制作例">
+      <WorkList works={view.featuredWorks} />
+    </Section>
+  )}
 </BaseLayout>
 
 <style>
   .hero {
-    padding-bottom: var(--space-12);
+    padding-bottom: var(--space-8);
   }
   .photo {
-    position: relative;
     max-width: var(--content-width);
     margin: var(--space-4) auto 0;
     padding-inline: var(--gutter);
@@ -75,34 +109,48 @@ import Button from "../components/Button.astro";
     font-weight: 500;
     font-size: 1.125rem;
   }
-  .tagline .pc {
-    display: none;
-  }
-  @media (min-width: 40rem) {
-    .tagline .pc {
-      display: inline;
-    }
-  }
-  .status {
-    margin: var(--space-3) 0 0;
-    color: var(--color-text-muted);
-    font-size: 0.9375rem;
-  }
-  .status::before {
-    content: "";
-    display: inline-block;
-    width: 0.5rem;
-    height: 0.5rem;
-    margin-right: var(--space-2);
-    border-radius: var(--radius-full);
-    background: var(--color-beak);
-    vertical-align: 0.1em;
-  }
   .actions {
     display: flex;
     flex-wrap: wrap;
     justify-content: center;
     gap: var(--space-3);
+    margin-top: var(--space-6);
+  }
+  .skills {
+    display: grid;
+    gap: var(--space-3);
+    grid-template-columns: repeat(auto-fit, minmax(15rem, 1fr));
+    margin: var(--space-6) 0 0;
+    padding: 0;
+    list-style: none;
+  }
+  .skills li {
+    display: flex;
+    flex-direction: column;
+    padding: var(--space-4) var(--space-6);
+    background: var(--color-sunken);
+    border-radius: var(--radius-m);
+  }
+  .skill-name {
+    font-weight: 700;
+  }
+  .skill-desc {
+    color: var(--color-text-muted);
+    font-size: 0.9375rem;
+  }
+  .cards {
+    display: grid;
+    gap: var(--space-4);
+    grid-template-columns: repeat(auto-fit, minmax(16rem, 1fr));
+    margin: var(--space-6) 0 0;
+    padding: 0;
+    list-style: none;
+  }
+  .more {
+    margin: var(--space-4) 0 0;
+    text-align: right;
+  }
+  :global(section[aria-labelledby="works"] .works) {
     margin-top: var(--space-6);
   }
 </style>

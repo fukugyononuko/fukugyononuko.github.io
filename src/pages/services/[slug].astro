@@ -1,0 +1,137 @@
+---
+// CMP-C01 Pages / SCR-04 サービス詳細（DD-11、CC-03、FR-05〜FR-07）
+import BaseLayout from "../../layouts/BaseLayout.astro";
+import Button from "../../components/Button.astro";
+import ExternalLink from "../../components/ExternalLink.astro";
+import { showcase } from "../../system/compose";
+
+export async function getStaticPaths() {
+  const slugs = await showcase.listServiceSlugs();
+  return slugs.map((slug) => ({ params: { slug } }));
+}
+
+const view = await showcase.getServiceDetailView(Astro.params.slug!);
+---
+<BaseLayout meta={view.meta}>
+  <article class="container page">
+    <p class="crumb"><a href="/services/">サービス</a></p>
+    <h1>{view.title}</h1>
+    <p class="summary">{view.summary}</p>
+
+    <dl class="facts">
+      <div>
+        <dt>料金</dt>
+        <dd>
+          <span class="price">{view.price.text}</span>
+          {view.price.note && <span class="note">{view.price.note}</span>}
+        </dd>
+      </div>
+      {view.leadTime && (
+        <div>
+          <dt>期間の目安</dt>
+          <dd>{view.leadTime}</dd>
+        </div>
+      )}
+    </dl>
+
+    {view.audience.length > 0 && (
+      <section>
+        <h2>こんな方に</h2>
+        <ul>{view.audience.map((a) => <li>{a}</li>)}</ul>
+      </section>
+    )}
+    {view.deliverables.length > 0 && (
+      <section>
+        <h2>お渡しするもの</h2>
+        <ul>{view.deliverables.map((d) => <li>{d}</li>)}</ul>
+      </section>
+    )}
+    {view.body && <section class="body" set:html={view.body} />}
+
+    <div class="cta">
+      {view.cta.route === "inquiry" ? (
+        <Button href={view.cta.href}>{view.cta.label}</Button>
+      ) : (
+        <ExternalLink class="external-cta" href={view.cta.href}>{view.cta.label}</ExternalLink>
+      )}
+    </div>
+  </article>
+</BaseLayout>
+
+<style>
+  .page {
+    max-width: 48rem;
+    padding-block: var(--space-8) var(--space-12);
+  }
+  .crumb {
+    margin: 0;
+    font-size: 0.875rem;
+  }
+  .crumb a::before {
+    content: "← ";
+  }
+  h1 {
+    margin: var(--space-2) 0;
+    font-size: clamp(1.75rem, 5vw, 2.25rem);
+  }
+  .summary {
+    margin: 0 0 var(--space-6);
+    color: var(--color-text-muted);
+  }
+  .facts {
+    display: grid;
+    gap: var(--space-3);
+    margin: 0 0 var(--space-8);
+    padding: var(--space-4) var(--space-6);
+    background: var(--color-sunken);
+    border-radius: var(--radius-m);
+  }
+  .facts div {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-1) var(--space-4);
+  }
+  dt {
+    min-width: 6rem;
+    font-weight: 700;
+  }
+  dd {
+    margin: 0;
+  }
+  .price {
+    font-weight: 700;
+    color: var(--color-sea);
+  }
+  .note {
+    display: block;
+    color: var(--color-text-muted);
+    font-size: 0.875rem;
+  }
+  h2 {
+    margin: var(--space-8) 0 var(--space-2);
+    font-size: 1.25rem;
+  }
+  ul {
+    margin: 0;
+    padding-left: 1.25rem;
+  }
+  .cta {
+    margin-top: var(--space-12);
+    text-align: center;
+  }
+  .external-cta {
+    display: inline-flex;
+    align-items: center;
+    min-height: 2.75rem;
+    padding: var(--space-2) var(--space-6);
+    border-radius: var(--radius-full);
+    background: var(--color-sea);
+    color: var(--color-on-sea);
+    font-weight: 700;
+    text-decoration: none;
+  }
+  .external-cta:hover {
+    background: var(--color-sea-strong);
+    color: var(--color-on-sea);
+  }
+</style>
