@@ -1,13 +1,21 @@
-# RES-01 スキル（DD-02）。フェーズ 4 で本番の内容に差し替える（仮）。
+# RES-01 スキル（DD-02）。実際より大きく見せない。実務か個人かを description に書く。
 # 分類の order は分類の並び順。スキルの order はスキル全体での並び順（トップの注目項目はこの順に並ぶ）。
 - id: web
   name: ホームページ・モック制作
   order: 10
   skills:
-    - { id: site, name: ホームページの制作, description: 静的サイトの設計から公開まで, featured: true, order: 10 }
+    - { id: site, name: ホームページの制作, description: Astro と TypeScript で、設計から公開まで（このサイトなど）, featured: true, order: 10 }
     - { id: mock, name: 画面モックの制作, description: アイデアを画面の形にして確認できるように, featured: true, order: 20 }
 - id: data
   name: データ解析
   order: 20
   skills:
-    - { id: analysis, name: データの集計・可視化, description: 表やグラフで状況を見える形に, featured: true, order: 30 }
+    - { id: analysis, name: データの集計・可視化, description: Python で、表やグラフにして状況を見える形に, featured: true, order: 30 }
+- id: dev
+  name: 開発・インフラ
+  order: 30
+  skills:
+    - { id: kotlin, name: Kotlin（Quarkus）, description: 実務で業務システムを開発, order: 40 }
+    - { id: python, name: Python, description: 実務と個人での開発, order: 50 }
+    - { id: gcp, name: Google Cloud（GKE）, description: 実務で利用, order: 60 }
+    - { id: rust, name: Rust, description: 個人での開発, order: 70 }

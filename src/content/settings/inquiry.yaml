@@ -1,6 +1,12 @@
-# RES-02 問い合わせ手段（DD-06）。手段が決まるまでの仮の設定（OPEN-01）。
-# kind: form-post（フォームから送信）/ embed（外部フォームの埋め込み）/ link（外部の連絡先へのリンク）
-kind: link
-url: https://github.com/fukugyononuko
-label: GitHub のプロフィールを見る
-note: 問い合わせの窓口は準備中です。開設まで少しお待ちください。
+# RES-02 問い合わせ手段（DD-06、OPEN-01：Formspree に決定）
+# 送信先は Formspree。内容はこのサイトに保存されず、副業のぬこの受信用アドレスに届く（NFR-17）。
+# param は Formspree の項目名。email という名前の項目が返信先になる。_gotcha は Formspree のハニーポット欄。
+kind: form-post
+action: https://formspree.io/f/xeaekpwb
+honeypotField: _gotcha
+note: 内容を確認して、数日以内にご返信します。まだ内容が固まっていない段階のご相談も歓迎です。
+fields:
+  - { name: name, label: お名前（ニックネーム可）, required: false, param: name }
+  - { name: replyTo, label: 返信先のメールアドレス, required: true, param: email }
+  - { name: service, label: ご相談のサービス, required: false, param: service }
+  - { name: message, label: ご相談の内容, required: true, param: message }
