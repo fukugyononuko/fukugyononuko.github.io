@@ -1,0 +1,9 @@
+/* 見出しフォント（Zen Maru Gothic 700、OFL）。使う文字だけに絞ったものを、ビルドのあとに
+   scripts/subset-heading-font.mjs が dist/fonts/ に作る。開発サーバーではファイルがないので、代わりのフォントで表示される。 */
+@font-face {
+  font-family: "Zen Maru Gothic";
+  font-style: normal;
+  font-weight: 700;
+  font-display: swap;
+  src: url("/fonts/zen-maru-gothic-700-subset.woff2") format("woff2");
+}

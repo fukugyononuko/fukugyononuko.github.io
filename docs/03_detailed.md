@@ -453,10 +453,11 @@ label: X の DM で問い合わせる
 ├── .github/dependabot.yml                DD-16（npm と github-actions）
 ├── .dependency-cruiser.cjs               DD-12
 ├── .nvmrc
+├── assets/fonts/                         見出しフォントの元（Zen Maru Gothic Bold、OFL）。ビルド時にサブセット化する
 ├── astro.config.mjs                      CMP-U01 の値の元
 ├── docs/                                 設計ドキュメント
 ├── public/                               favicon、og-default.png、robots.txt
-├── scripts/                              check-astro-imports.mjs（DD-12）、check-workflows.mjs（TC-N10）、check-image-metadata.mjs（TC-N15）、check-privacy.mjs（TC-N06）、lighthouse.mjs（TC-N01）
+├── scripts/                              check-astro-imports.mjs（DD-12）、check-workflows.mjs（TC-N10）、check-image-metadata.mjs（TC-N15）、check-privacy.mjs（TC-N06）、lighthouse.mjs（TC-N01）、subset-heading-font.mjs（見出しフォントのサブセット化）
 ├── src/
 │   ├── content.config.ts                 DD-02（CMP-A01 の内部）
 │   ├── content/                          RES-01〜03
