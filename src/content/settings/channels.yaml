@@ -1,3 +1,6 @@
-# RES-03 外部チャネル（DD-07、OPEN-04）
+# RES-03 外部チャネル（DD-07、OPEN-04）。副業のぬことして運営しているアカウントだけを載せる。
 - { id: note, label: note, url: https://note.com/fukugyo_no_nuko, icon: note, order: 10 }
-- { id: github, label: GitHub, url: https://github.com/fukugyononuko, icon: github, order: 30 }
+- { id: x, label: X, url: https://x.com/fukugyo_no_nuko, icon: x, order: 20 }
+- { id: threads, label: Threads, url: https://www.threads.com/@fukugyononuko, icon: threads, order: 30 }
+- { id: instagram, label: Instagram, url: https://www.instagram.com/fukugyononuko/, icon: instagram, order: 40 }
+- { id: github, label: GitHub, url: https://github.com/fukugyononuko, icon: github, order: 50 }
