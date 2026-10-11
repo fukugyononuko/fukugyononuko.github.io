@@ -30,7 +30,7 @@
 
 ## 開発の決まり
 
-振り返り（[フェーズ 0〜3](retrospectives/2026-10-11-phase0-3.md)、[フェーズ 4](retrospectives/2026-10-11-phase4.md)、[フェーズ 5](retrospectives/2026-10-11-phase5.md)、[SNS とカフェ](retrospectives/2026-10-11-sns-cafe.md)、[宇宙の分析](retrospectives/2026-10-11-space.md)、[三体問題シミュレーター](retrospectives/2026-10-11-three-body.md)）で決めたこと。
+振り返り（[フェーズ 0〜3](retrospectives/2026-10-11-phase0-3.md)、[フェーズ 4](retrospectives/2026-10-11-phase4.md)、[フェーズ 5](retrospectives/2026-10-11-phase5.md)、[SNS とカフェ](retrospectives/2026-10-11-sns-cafe.md)、[宇宙の分析](retrospectives/2026-10-11-space.md)、[三体問題シミュレーター](retrospectives/2026-10-11-three-body.md)、[ご意見の反映](retrospectives/2026-10-12-three-body-feedback.md)）で決めたこと。
 
 | # | 決まり | 由来 |
 | --- | --- | --- |
@@ -40,12 +40,14 @@
 | 4 | 実装を始める前に、各 View の項目のデータの出所を、利用規則（01 §1.6）に照らして確かめる。フレームワークに依存する前提は、小さく試して確かめる | T-04 |
 | 5 | ドキュメントを置き換えたり分割したりするときは、旧版の見出しが新版のどこにあるかを対応表で確かめる | T-05 |
 | 6 | `.github/workflows/` を扱う前に、`gh auth status` で `workflow` スコープがあるかを確かめる | T-06 |
-| 7 | 新しいリポジトリでは、最初のコミットだけを `main` に直接 push する。CI が通ったら、すぐに次を設定し、以後は PR を通す：ブランチ保護（CI の成功が必須、force push と削除の禁止、管理者にも適用）、Actions の既定の権限を読み取りのみ、Dependabot alerts と security updates、secret scanning と push protection。CSP を使うサイトでは、最初のページと同時に CSP 違反のテストを入れる（インラインの style 属性と、data: URI で埋め込んだフォントは CSP に阻まれる）。最初に入れるファイル：`.nvmrc`（Rust を使うなら `rust-toolchain.toml`）、`.gitignore`（`.privacy-denylist` を含める）、`.github/dependabot.yml`、CI のワークフロー、検査スクリプト（`check-workflows`、`check-privacy`、必要に応じて `check-image-metadata`、`check-asset-budget`）、`LICENSE`、`README.md` | [phase4](retrospectives/2026-10-11-phase4.md) T-02、[sns-cafe](retrospectives/2026-10-11-sns-cafe.md) T-01、[three-body](retrospectives/2026-10-11-three-body.md) T-03 |
+| 7 | 新しいリポジトリでは、最初のコミットだけを `main` に直接 push する。CI が通ったら、すぐに次を設定し、以後は PR を通す：ブランチ保護（CI の成功が必須、force push と削除の禁止、管理者にも適用）、Actions の既定の権限を読み取りのみ、Dependabot alerts と security updates、secret scanning と push protection。CSP を使うサイトでは、最初のページと同時に CSP 違反のテストを入れる（インラインの style 属性と、data: URI で埋め込んだフォントは CSP に阻まれる）。最初に入れるファイル：`.nvmrc`（Rust を使うなら `rust-toolchain.toml`）、`.gitignore`（`.privacy-denylist` を含める）、`.github/dependabot.yml`、CI のワークフロー、検査スクリプト（`check-workflows`、`check-privacy`、必要に応じて `check-image-metadata`、`check-asset-budget`）、`LICENSE`、`README.md`。全体の CSS には `[hidden] { display: none !important; }` を入れる（`display` の指定が `hidden` 属性に勝つのを防ぐ） | [phase4](retrospectives/2026-10-11-phase4.md) T-02、[sns-cafe](retrospectives/2026-10-11-sns-cafe.md) T-01、[three-body](retrospectives/2026-10-11-three-body.md) T-03 |
 | 8 | 公開リポジトリに書く文章（ファイル、コミットメッセージ、PR のタイトルと本文）には、個人情報や、ユーザーが分けている別の活動の名前を書かない。CI の個人情報の検査（TC-N06）がこれらをすべて検査する。手元では `npm run check:privacy` で確かめる | [phase5](retrospectives/2026-10-11-phase5.md) T-01、T-05 |
 | 9 | 好みに左右される見た目の選択（配色、主要な写真）は、2〜3 案を並べて見せ、選んでもらってから実装する | [space](retrospectives/2026-10-11-space.md) T-01 |
 | 10 | 性能の予算：1 ページが読み込む CSS は 20KB まで、見出しフォントは 60KB まで。CI（`npm run check:budget`）で検査する | [space](retrospectives/2026-10-11-space.md) T-02 |
 | 11 | コミットするデータ（CSV など）を作るときは、同じ値どうしでも並び順が一意に決まるようにする（タイブレークのキーを入れる） | [space](retrospectives/2026-10-11-space.md) T-04 |
 | 12 | 数値のテストの基準（しきい値）は、先に実際に計測し、理屈（許容誤差、保存則など）と照らして決める。根拠をテストのコメントに書く | [three-body](retrospectives/2026-10-11-three-body.md) T-02 |
+| 13 | 操作できる道具（シミュレーターなど）を作るときは、利用者が変えられる項目と、変えられない項目（固定する理由つき）を一覧にし、作る前にユーザーに確かめる | [three-body-feedback](retrospectives/2026-10-12-three-body-feedback.md) T-01 |
+| 14 | Web フォントを足すときは、使う文字だけにサブセット化し、大きさを予算の検査（決まり 10）に入れる | [three-body-feedback](retrospectives/2026-10-12-three-body-feedback.md) T-02 |
 
 ## ID の規則
 
