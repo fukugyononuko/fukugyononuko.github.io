@@ -62,7 +62,7 @@
 | TC-N03 | 全画面で title・description・canonical・OGP が固有であること。sitemap と robots.txt が出力されること | NFR-04 |
 | TC-N04 | 幅 360px で横スクロールが発生しないこと | NFR-01 |
 | TC-N05 | `prefers-color-scheme: dark` でダークテーマの色が使われること | NFR-05 |
-| TC-N06 | 個人情報の確認（CI）：追跡しているファイルに禁止語（本名など）がないこと、コミットのアドレスが許可したものだけであること。禁止語は公開リポジトリに書かず、Secret `PRIVACY_DENYLIST` か git 管理外の `.privacy-denylist` から読む | NFR-06 |
+| TC-N06 | 個人情報の確認（CI）：追跡しているファイル、すべてのコミットメッセージ、PR のタイトルと本文に禁止語（本名など）がないこと、コミットのアドレスが許可したものだけであること。禁止語は公開リポジトリに書かず、Secret `PRIVACY_DENYLIST` か git 管理外の `.privacy-denylist` から読む | NFR-06 |
 | TC-N07 | 運用費の確認：有料のサービスや有料プランを使っていないこと（リリース前に手動で確認） | NFR-07 |
 | TC-N08 | GitHub の設定が DD-16 の表のとおりであること（2 要素認証、ブランチ保護、Actions の権限、Dependabot、secret scanning、Enforce HTTPS）。リリース前と、設定を変えたときに手動で確認 | NFR-11, NFR-12, NFR-13, NFR-14, NFR-18 |
 | TC-N09 | `npm audit --audit-level=high` が 0 件であること（CI） | NFR-13 |

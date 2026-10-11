@@ -30,7 +30,7 @@
 
 ## 開発の決まり
 
-振り返り（[フェーズ 0〜3](retrospectives/2026-10-11-phase0-3.md)、[フェーズ 4](retrospectives/2026-10-11-phase4.md)）で決めたこと。
+振り返り（[フェーズ 0〜3](retrospectives/2026-10-11-phase0-3.md)、[フェーズ 4](retrospectives/2026-10-11-phase4.md)、[フェーズ 5](retrospectives/2026-10-11-phase5.md)）で決めたこと。
 
 | # | 決まり | 由来 |
 | --- | --- | --- |
@@ -41,6 +41,7 @@
 | 5 | ドキュメントを置き換えたり分割したりするときは、旧版の見出しが新版のどこにあるかを対応表で確かめる | T-05 |
 | 6 | `.github/workflows/` を扱う前に、`gh auth status` で `workflow` スコープがあるかを確かめる | T-06 |
 | 7 | 新しいリポジトリでは、最初のコミットだけを `main` に直接 push する。CI が通ったら、すぐに次を設定し、以後は PR を通す：ブランチ保護（CI の成功が必須、force push と削除の禁止、管理者にも適用）、Actions の既定の権限を読み取りのみ、Dependabot alerts と security updates、secret scanning と push protection | [phase4](retrospectives/2026-10-11-phase4.md) T-02 |
+| 8 | 公開リポジトリに書く文章（ファイル、コミットメッセージ、PR のタイトルと本文）には、個人情報や、ユーザーが分けている別の活動の名前を書かない。CI の個人情報の検査（TC-N06）がこれらをすべて検査する。手元では `npm run check:privacy` で確かめる | [phase5](retrospectives/2026-10-11-phase5.md) T-01、T-05 |
 
 ## ID の規則
 
