@@ -153,3 +153,14 @@ test("TC-N03：全画面に固有の title・description・canonical・OGP が�
     await expect(page.locator('meta[property="og:image"]')).toHaveAttribute("content", /^https:\/\/.+\.jpg$/);
   }
 });
+
+test("TC-N14：問い合わせの送信先は https で、ハニーポット欄があり、必須項目が指定されている", async ({ page }) => {
+  await page.goto("/contact/");
+  const form = page.locator(".channel form");
+  if ((await form.count()) === 0) test.skip(true, "問い合わせ手段が form-post ではない");
+  await expect(form).toHaveAttribute("action", /^https:\/\//);
+  await expect(form).toHaveAttribute("method", "post");
+  await expect(form.locator(".honeypot input")).toHaveAttribute("tabindex", "-1");
+  await expect(form.locator("input[type=email]")).toHaveAttribute("required", "");
+  await expect(form.locator("textarea")).toHaveAttribute("required", "");
+});
