@@ -1,0 +1,94 @@
+---
+// CMP-C01 問い合わせ手段：form-post（02a §2a.5、DD-06、NFR-17）
+// 送信先は外部のサービス。内容はこのサイトに保存しない。
+import type { InquiryChannel } from "../../system/contracts";
+interface Props {
+  channel: Extract<InquiryChannel, { kind: "form-post" }>;
+  serviceOptions: { slug: string; title: string }[];
+}
+const { channel, serviceOptions } = Astro.props;
+---
+<form class="form" method="post" action={channel.action}>
+  {channel.fields.map((f) => {
+    const id = `inquiry-${f.name}`;
+    const param = f.param ?? f.name;
+    return (
+      <div class="field">
+        <label for={id}>{f.label}{f.required && <span class="required">（必須）</span>}</label>
+        {f.name === "message" ? (
+          <textarea id={id} name={param} rows="6" required={f.required} />
+        ) : f.name === "service" ? (
+          <select id={id} name={param} required={f.required} data-service-select>
+            <option value="">選択しない</option>
+            {serviceOptions.map((o) => <option value={o.slug}>{o.title}</option>)}
+          </select>
+        ) : (
+          <input
+            id={id}
+            name={param}
+            type={f.name === "replyTo" ? "email" : "text"}
+            autocomplete={f.name === "replyTo" ? "email" : f.name === "name" ? "name" : undefined}
+            required={f.required}
+          />
+        )}
+      </div>
+    );
+  })}
+  {channel.honeypotField && (
+    <div class="honeypot" aria-hidden="true">
+      <label for="inquiry-hp">この欄は空のままにしてください</label>
+      <input id="inquiry-hp" name={channel.honeypotField} type="text" tabindex="-1" autocomplete="off" />
+    </div>
+  )}
+  <button class="submit" type="submit">送信する</button>
+</form>
+
+<style>
+  .form {
+    display: grid;
+    gap: var(--space-4);
+  }
+  .field {
+    display: grid;
+    gap: var(--space-1);
+  }
+  label {
+    font-weight: 700;
+  }
+  .required {
+    margin-left: var(--space-1);
+    color: var(--color-text-muted);
+    font-size: 0.875rem;
+    font-weight: 400;
+  }
+  input,
+  select,
+  textarea {
+    width: 100%;
+    padding: var(--space-2) var(--space-3);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-s);
+    background: var(--color-surface);
+    color: var(--color-text);
+    font: inherit;
+  }
+  .honeypot {
+    position: absolute;
+    left: -10000px;
+  }
+  .submit {
+    justify-self: center;
+    min-height: 2.75rem;
+    padding: var(--space-2) var(--space-8);
+    border: none;
+    border-radius: var(--radius-full);
+    background: var(--color-sea);
+    color: var(--color-on-sea);
+    font: inherit;
+    font-weight: 700;
+    cursor: pointer;
+  }
+  .submit:hover {
+    background: var(--color-sea-strong);
+  }
+</style>

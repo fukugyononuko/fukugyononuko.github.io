@@ -29,13 +29,14 @@
 
 ```ts
 // contracts/records.ts
-export type Markdown = string; // 本文（描画は Client が行う）
+/** 運営者の Markdown をビルド時に変換した HTML。運営者のコンテンツ以外を入れてはいけない（NFR-15） */
+export type TrustedHtml = string;
 
 export interface OperatorProfile {
   displayName: string;
   tagline: string;
   avatar: ImageRef;
-  bio: Markdown;
+  bio: TrustedHtml;
 }
 
 export interface ImageRef { src: string; alt: string }
@@ -74,7 +75,7 @@ export interface ServiceRecord extends Curatable {
   summary: string;
   audience: string[];
   deliverables: string[];
-  body: Markdown;
+  body: TrustedHtml;
   price: PriceSpec;
   priceNote?: string;
   leadTime?: string;
@@ -99,7 +100,7 @@ export interface Channel {
 }
 
 export type InquiryChannel =
-  | { kind: "form-post"; action: string; fields: InquiryField[]; note?: string }
+  | { kind: "form-post"; action: string; fields: InquiryField[]; honeypotField?: string; note?: string }
   | { kind: "embed"; src: string; fallbackUrl: string; note?: string }
   | { kind: "link"; url: string; label: string; note?: string };
 
@@ -107,6 +108,7 @@ export interface InquiryField {
   name: "name" | "replyTo" | "service" | "message";
   label: string;
   required: boolean;
+  param?: string;   // 送信先に渡す項目名（受付先のサービスの決まりに合わせる。省略時は name）
 }
 
 export interface Article { title: string; url: string; publishedAt: string; source: string }
@@ -136,7 +138,7 @@ export interface PageMeta {
   ogImage: string; ogType: "website" | "article";
 }
 
-export interface LayoutView { siteName: string; copyright: string; analytics: AnalyticsTag | null }
+export interface LayoutView { siteName: string; avatar: ImageRef; copyright: string; analytics: AnalyticsTag | null }
 export interface HomeView {
   meta: PageMeta; profile: OperatorProfile;
   featuredSkills: Skill[]; featuredWorks: Work[]; featuredServices: ServiceCard[];
@@ -146,7 +148,7 @@ export interface ServiceCard { slug: string; title: string; summary: string; pri
 export interface ServiceCatalogView { meta: PageMeta; services: ServiceCard[] }
 export interface ServiceDetailView {
   meta: PageMeta; slug: string; title: string; summary: string;
-  audience: string[]; deliverables: string[]; body: Markdown;
+  audience: string[]; deliverables: string[]; body: TrustedHtml;
   price: PriceDisplay; leadTime?: string; cta: CallToAction;
 }
 export interface ContactView {
@@ -196,6 +198,13 @@ export interface ChannelAccess {
   findChannel(id: string): Promise<Channel | undefined>;
 }
 export interface ArticleAccess { listRecentArticles(limit: number): Promise<Article[]> }  // 将来
+export interface SiteConfig { siteUrl: string; base: string; locale: "ja" }
+export interface PageMetaInput {
+  siteName: string; title?: string;   // title を省くとサイト名だけ（トップ用）
+  description: string; path: string; ogImage?: string; type?: PageMeta["ogType"];
+}
+export interface Seo { buildPageMeta(input: PageMetaInput): PageMeta }
+export interface Analytics { getAnalyticsTag(): Promise<AnalyticsTag | null> }
 ```
 
 ### 構成要素の組み立て
@@ -210,11 +219,11 @@ Astro の Content Collections（`src/content.config.ts`）で zod スキーマ�
 
 | コレクション | 場所 | 形式 | 主な項目 |
 | --- | --- | --- | --- |
-| `profile` | `src/content/profile.yaml` | YAML（1 件） | displayName, tagline, avatar{src, alt}, bio |
-| `skills` | `src/content/skills.yaml` | YAML（分類の配列） | name, order, skills[{id, name, description?, featured, order}] |
+| `profile` | `src/content/profile.md` | Markdown + frontmatter（1 件） | displayName, tagline, avatar{src, alt}。本文が自己紹介（bio） |
+| `skills` | `src/content/skills.yaml` | YAML（分類の配列） | id, name, order, skills[{id, name, description?, featured, order}] |
 | `works` | `src/content/works/*.md` | Markdown + frontmatter | kind, title, summary, url?, date, featured, order, draft |
 | `services` | `src/content/services/*.md` | Markdown + frontmatter | title, summary, audience[], deliverables[], price, priceNote?, leadTime?, cta, featured, order, draft |
-| `presentation` | `src/content/settings/presentation.yaml` | YAML | pricePolicy, curation{skills, works, services} |
+| `presentation` | `src/content/settings/presentation.yaml` | YAML（1 件） | pricePolicy, curation{skills, works, services} |
 
 ### 検証規則
 
@@ -224,12 +233,17 @@ Astro の Content Collections（`src/content.config.ts`）で zod スキーマ�
 | price | `kind` が `fixed` / `from` なら `amount` は 0 以上の整数。`quote` なら `amount` を書かない |
 | cta | `route: channel` なら `channelId` が必須（存在するかどうかは CtaEngine が確かめる。DD-05） |
 | kind | 制作例では必須。`client` / `personal` / `sample` のどれか（省略させないことで、サンプルを受託実績と取り違えて載せることを防ぐ） |
+| スキルの order | 分類の中ではなく、スキル全体での並び順（トップの注目項目を選ぶときに全体で並べるため） |
 | featured / order | 省略時は `false` / `100` |
 | draft | `true` のものは `listOfferedServices` と `listWorks` に含めない |
 | 画像 | `avatar.alt` は必須（NFR-03） |
 | 文字数 | `summary` は 120 字以内、`title` は 40 字以内（description や OGP に使うため） |
 
 違反があれば `astro build` が失敗する（FR-14、DD-14）。
+
+- スキーマは ResourceAccess のディレクトリに置き（`resource-access/content-access/schemas.ts` など）、`src/content.config.ts` から使う。単体テストでも同じスキーマを使う（TC-U04〜U06）。
+- 1 件だけの YAML（`presentation.yaml`、`inquiry.yaml`）は、id「main」の 1 エントリーとして読む（`content.config.ts` の `singleEntry`）。
+- ResourceAccess は「契約への変換」（`index.ts`、テストで偽の読み込み元に差し替えられる）と「Astro からの読み込み」（`astro-source.ts`、`astro:content` を使う）に分ける。
 
 ### サービスの例
 
@@ -341,6 +355,7 @@ label: X の DM で問い合わせる
 
 ## 3.8 DD-08 記事の取得（ArticleAccess・将来）
 
+- 初期の実装は `createNoArticleAccess()`（常に空の一覧。VOL-06 の「記事の出所なし」の状態）。
 - 実装の候補：`NoteRssArticleAccess`（ビルド時に `https://note.com/{id}/rss` を取得して解析）、`LocalBlogArticleAccess`（`src/content/posts/`）、両方を合わせるもの。
 - 取得のタイムアウトは 10 秒。失敗したら空の配列を返し、ビルドログに警告を出す（ビルドは失敗させない。DD-14）。
 - どの実装を使うかは `compose.ts` だけで切り替える。
@@ -357,25 +372,25 @@ label: X の DM で問い合わせる
 | 構成要素 | 実装 |
 | --- | --- |
 | CMP-U01 Config | `astro.config.mjs` の `site`（`https://fukugyononuko.github.io`）と `base`（`/`）を `import.meta.env` から読み、`{ siteUrl, base, locale: "ja" }` を返す |
-| CMP-U02 Seo | `buildPageMeta({ title, description, path, ogImage?, type? })`。title は `"{ページ名} | {サイト名}"`（トップはサイト名のみ）。canonical と OGP 画像は Config から絶対 URL にする。OGP 画像の既定は `/og-default.png` |
+| CMP-U02 Seo | `buildPageMeta({ title, description, path, ogImage?, type? })`。title は `"{ページ名} | {サイト名}"`（トップはサイト名のみ）。canonical と OGP 画像は Config から絶対 URL にする。OGP 画像の既定は `/og-default.jpg`。サイト名は Manager が `siteName` として渡す（Utility は ResourceAccess を呼ばないため。R7） |
 | CMP-U03 Analytics | `src/content/settings/analytics.yaml` があれば読み、`{ provider, snippet }` を返す。なければ `null`（OPEN-06 が決まるまでは置かない） |
 
 ## 3.11 DD-11 Client（ページとコンポーネント）
 
 | 画面 | ファイル | 呼ぶ Manager の操作 |
 | --- | --- | --- |
-| SCR-00 | `src/layouts/BaseLayout.astro`、`src/components/{Header,Footer,Meta}.astro` | `getLayoutView`、`getChannelLinks` |
+| SCR-00 | `src/layouts/BaseLayout.astro`、`src/components/{Header,Footer,Icon,ExternalLink,Button,Section}.astro` | `getLayoutView`、`getChannelLinks` |
 | SCR-01 | `src/pages/index.astro` | `getHomeView` |
 | SCR-02 | `src/pages/about.astro` | `getAboutView` |
 | SCR-03 | `src/pages/services/index.astro` | `getServiceCatalogView` |
 | SCR-04 | `src/pages/services/[slug].astro`（`getStaticPaths` で `listServiceSlugs` を使う） | `getServiceDetailView` |
 | SCR-05 | `src/pages/contact.astro`、`src/components/inquiry/{FormPost,Embed,Link}.astro`、`src/scripts/contact-prefill.ts` | `getContactView` |
-| SCR-06 | `src/pages/404.astro` | `getLayoutView` だけ |
+| SCR-06 | `src/pages/404.astro`（canonical と OGP を出さず `noindex`） | `getLayoutView` だけ |
 
 - スタイルは `src/styles/tokens.css`（色・余白・文字の CSS 変数）、`src/styles/global.css`（全体の基本）、各コンポーネントの scoped CSS。ダークモードは `prefers-color-scheme` で CSS 変数を切り替える（NFR-05）。値と部品の一覧は 02a §2a.7。
 - 閲覧時の JavaScript は `contact-prefill.ts` だけ（NFR-10）。`?service=` の値が `serviceOptions` にあるときだけ選択欄に反映する。値を HTML として書き込まない（NFR-15）。
 - 外部リンクは共通コンポーネント `ExternalLink.astro` だけで出力し、`target="_blank" rel="noopener noreferrer"` を必ず付ける（NFR-16）。
-- Markdown 本文の描画は Client で行う。
+- Markdown の本文は ContentAccess がビルド時に HTML に変換して渡す（`TrustedHtml`）。Client は `set:html` を `TrustedHtml` にだけ使う（NFR-15）。
 - 制作例の種類ラベルは Client が持つ（`client` → 受託、`personal` → 個人制作、`sample` → サンプル）。ラベルは省略せず、すべての制作例に表示する（FR-03）。
 - 制作例が 0 件ならその欄を出さない。サービスが 0 件なら「準備中です」と問い合わせへの誘導を出す（FR-03、FR-04）。
 
@@ -396,6 +411,7 @@ label: X の DM で問い合わせる
 
 - 規則が空振りしていないことを、違反をわざと含むフィクスチャ（`tests/architecture/fixtures/violations`）と、許可された呼び出しだけのフィクスチャ（`fixtures/valid`）で確かめる（TC-A01）。
 
+- 構成要素は 1 ファイルでも、同名のディレクトリでもよい。同じ構成要素の中での import は許可する。
 - `contracts/` はどこからでも import してよい。
 - R2 は許可の規則なので、検査は R1 と R3〜R7 の禁止で足りる。
 - Client が import してよいのは `src/system/compose.ts` と `src/system/contracts/` だけ。
@@ -444,7 +460,7 @@ label: X の DM で問い合わせる
 ├── src/
 │   ├── content.config.ts                 DD-02（CMP-A01 の内部）
 │   ├── content/                          RES-01〜03
-│   │   ├── profile.yaml
+│   │   ├── profile.md
 │   │   ├── skills.yaml
 │   │   ├── works/*.md
 │   │   ├── services/*.md
@@ -464,10 +480,10 @@ label: X の DM で問い合わせる
 │       │   ├── curation-engine.ts        CMP-E02
 │       │   └── cta-engine.ts             CMP-E03
 │       ├── resource-access/
-│       │   ├── content-access.ts         CMP-A01
-│       │   ├── inquiry-access.ts         CMP-A02
-│       │   ├── channel-access.ts         CMP-A03
-│       │   └── article-access.ts         CMP-A04（将来）
+│       │   ├── content-access/           CMP-A01（index.ts、schemas.ts、astro-source.ts）
+│       │   ├── inquiry-access/           CMP-A02（index.ts、schema.ts、astro-source.ts）
+│       │   ├── channel-access/           CMP-A03（index.ts、schema.ts、astro-source.ts）
+│       │   └── article-access/           CMP-A04（初期は「記事なし」の実装）
 │       ├── utilities/
 │       │   ├── config.ts                 CMP-U01
 │       │   ├── seo.ts                    CMP-U02
@@ -478,6 +494,7 @@ label: X の DM で問い合わせる
     ├── integration/                      TC-I
     ├── e2e/                              TC-S
     ├── architecture/                     TC-A01（規則の検査とフィクスチャ）
+    ├── support/                          テスト用の偽物（Manager の結合テストで ResourceAccess を差し替える）
     └── fixtures/                         テスト用のコンテンツ
 ```
 

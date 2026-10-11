@@ -1,5 +1,9 @@
 // DD-01 契約：ResourceAccess が返すレコード
-export type Markdown = string;
+/**
+ * 運営者のコンテンツ（Markdown）をビルド時に変換した HTML。
+ * 運営者が書いたもの以外（外部データ、URL のクエリなど）を入れてはいけない（NFR-15）。
+ */
+export type TrustedHtml = string;
 
 export interface ImageRef {
   src: string;
@@ -10,7 +14,7 @@ export interface OperatorProfile {
   displayName: string;
   tagline: string;
   avatar: ImageRef;
-  bio: Markdown;
+  bio: TrustedHtml;
 }
 
 export interface Curatable {
@@ -58,7 +62,7 @@ export interface ServiceRecord extends Curatable {
   summary: string;
   audience: string[];
   deliverables: string[];
-  body: Markdown;
+  body: TrustedHtml;
   price: PriceSpec;
   priceNote?: string;
   leadTime?: string;
@@ -89,10 +93,12 @@ export interface InquiryField {
   name: "name" | "replyTo" | "service" | "message";
   label: string;
   required: boolean;
+  /** 送信先に渡す項目名。受付先のサービスごとの決まりに合わせる（省略時は name） */
+  param?: string;
 }
 
 export type InquiryChannel =
-  | { kind: "form-post"; action: string; fields: InquiryField[]; note?: string }
+  | { kind: "form-post"; action: string; fields: InquiryField[]; honeypotField?: string; note?: string }
   | { kind: "embed"; src: string; fallbackUrl: string; note?: string }
   | { kind: "link"; url: string; label: string; note?: string };
 

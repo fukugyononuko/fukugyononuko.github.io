@@ -2,8 +2,9 @@
 // CMP-C01 / SCR-00 共通レイアウト：ヘッダー（02a §2a.4、§2a.7）
 interface Props {
   siteName: string;
+  avatar: { src: string; alt: string };
 }
-const { siteName } = Astro.props;
+const { siteName, avatar } = Astro.props;
 const path = Astro.url.pathname;
 const nav = [
   { href: "/about/", label: "About" },
@@ -14,7 +15,7 @@ const nav = [
 <header class="site-header">
   <div class="container inner">
     <a class="brand" href="/">
-      <img src="/images/avatar-320.webp" alt="" width="40" height="40" />
+      <img src={avatar.src} alt="" width="40" height="40" />
       <span>{siteName}</span>
     </a>
     <nav aria-label="メインメニュー">

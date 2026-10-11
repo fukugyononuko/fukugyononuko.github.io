@@ -1,0 +1,61 @@
+---
+// CMP-C01 制作例の一覧（SCR-01、SCR-02、FR-03：種類のラベルを必ず表示する）
+import type { Work, WorkKind } from "../system/contracts";
+import ExternalLink from "./ExternalLink.astro";
+
+interface Props {
+  works: Work[];
+  headingLevel?: 2 | 3;
+}
+const { works, headingLevel = 3 } = Astro.props;
+const Heading = `h${headingLevel}` as "h2" | "h3";
+const kindLabel: Record<WorkKind, string> = { client: "受託", personal: "個人制作", sample: "サンプル" };
+---
+<ul class="works">
+  {works.map((w) => (
+    <li class="work">
+      <p class:list={["kind", w.kind]}>{kindLabel[w.kind]}</p>
+      <Heading class="title">{w.url ? <ExternalLink href={w.url}>{w.title}</ExternalLink> : w.title}</Heading>
+      <p class="summary">{w.summary}</p>
+      {w.date && <p class="date"><time datetime={w.date}>{w.date.slice(0, 7).replace("-", "年")}月</time></p>}
+    </li>
+  ))}
+</ul>
+
+<style>
+  .works {
+    display: grid;
+    gap: var(--space-4);
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+  .work {
+    padding: var(--space-6);
+    background: var(--color-surface);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-m);
+  }
+  .kind {
+    display: inline-block;
+    margin: 0 0 var(--space-2);
+    padding: 0 var(--space-3);
+    border-radius: var(--radius-full);
+    background: var(--color-sea-soft);
+    color: var(--color-text);
+    font-size: 0.8125rem;
+    font-weight: 700;
+  }
+  .title {
+    margin: 0 0 var(--space-1);
+    font-size: 1.125rem;
+  }
+  .summary,
+  .date {
+    margin: 0;
+    color: var(--color-text-muted);
+  }
+  .date {
+    font-size: 0.875rem;
+  }
+</style>

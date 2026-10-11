@@ -1,0 +1,2 @@
+# RES-03 外部チャネル（DD-07）。note などは決まったら追加する（OPEN-04）。
+- { id: github, label: GitHub, url: https://github.com/fukugyononuko, icon: github, order: 30 }

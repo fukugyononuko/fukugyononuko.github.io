@@ -1,0 +1,31 @@
+---
+// CMP-C01 問い合わせ手段：link（02a §2a.5、DD-06）
+import type { InquiryChannel } from "../../system/contracts";
+import ExternalLink from "../ExternalLink.astro";
+interface Props {
+  channel: Extract<InquiryChannel, { kind: "link" }>;
+}
+const { channel } = Astro.props;
+---
+<p class="link"><ExternalLink class="button" href={channel.url}>{channel.label}</ExternalLink></p>
+
+<style>
+  .link {
+    text-align: center;
+  }
+  .link :global(.button) {
+    display: inline-flex;
+    align-items: center;
+    min-height: 2.75rem;
+    padding: var(--space-2) var(--space-6);
+    border-radius: var(--radius-full);
+    background: var(--color-sea);
+    color: var(--color-on-sea);
+    font-weight: 700;
+    text-decoration: none;
+  }
+  .link :global(.button:hover) {
+    background: var(--color-sea-strong);
+    color: var(--color-on-sea);
+  }
+</style>
