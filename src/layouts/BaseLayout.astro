@@ -1,7 +1,7 @@
 ---
 // CMP-C01 Pages / SCR-00 共通レイアウト（DD-11、02a §2a.4、§2a.7）
 // LayoutView（CMP-M01）と外部チャネル（CMP-M02、CC-05）を受け取って描く。
-import "@fontsource/zen-maru-gothic/700.css";
+import "../styles/heading-font.css";
 import "../styles/tokens.css";
 import "../styles/global.css";
 import Header from "../components/Header.astro";
@@ -47,6 +47,7 @@ const title = full ? full.title : `${meta.title} | ${layout.siteName}`;
     )}
     <meta name="theme-color" content="#f6f2ea" media="(prefers-color-scheme: light)" />
     <meta name="theme-color" content="#1b2128" media="(prefers-color-scheme: dark)" />
+    <link rel="preload" href="/fonts/zen-maru-gothic-700-subset.woff2" as="font" type="font/woff2" crossorigin />
     <link rel="icon" href="/favicon.png" type="image/png" />
     <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
   </head>

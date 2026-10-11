@@ -188,7 +188,7 @@ flowchart LR
 
 | 用途 | フォント | 理由 |
 | --- | --- | --- |
-| 見出し、サイト名、キャッチコピー | Zen Maru Gothic（700 のみ） | 丸みがあり、やわらかい印象。`@fontsource` でサイト内から配信する（外部サービスに頼らない。CSP の `font-src 'self'` を保つ）。太さを 1 つに絞り、日本語フォントの CSS（文字の範囲ごとの `@font-face`）を半分にした（フェーズ 5、TC-N01 の性能のため） |
+| 見出し、サイト名、キャッチコピー | Zen Maru Gothic（700 のみ、OFL） | 丸みがあり、やわらかい印象。サイト内から配信する（CSP の `font-src 'self'` を保つ）。ビルドのあとに、見出しで実際に使う文字だけに絞ったフォント（サブセット、約 20KB）を作る（`scripts/subset-heading-font.mjs`）。`@fontsource` の CSS（文字の範囲ごとの `@font-face`、約 100KB）が表示を遅らせ、性能が基準（90 点）を割ったため（TC-N01） |
 | 本文 | OS の標準フォント（ヒラギノ角ゴ、Noto Sans JP など） | 読みやすさと表示速度（NFR-02） |
 
 - 日本語は文節で折り返す（`word-break: auto-phrase`）。
