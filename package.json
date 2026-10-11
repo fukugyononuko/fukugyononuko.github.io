@@ -17,7 +17,8 @@
     "test:e2e": "playwright test",
     "check:images": "node scripts/check-image-metadata.mjs",
     "test:lighthouse": "node scripts/lighthouse.mjs",
-    "check:privacy": "node scripts/check-privacy.mjs"
+    "check:privacy": "node scripts/check-privacy.mjs",
+    "check:budget": "node scripts/check-asset-budget.mjs"
   },
   "dependencies": {
     "@astrojs/sitemap": "^3.7.4",
