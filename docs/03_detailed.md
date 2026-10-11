@@ -422,8 +422,8 @@ label: X の DM で問い合わせる
 
 | ジョブ | きっかけ | 手順 |
 | --- | --- | --- |
-| `check` | すべての push と PR | `npm ci` → `npm audit --audit-level=high`（TC-N09）→ `npm run check:workflows`（TC-N10）→ `npm run lint`（`astro check` による型検査）→ `npm run depcruise`（TC-A01）→ `npm test`（TC-U、TC-I、TC-A01） |
-| `build` | `check` の成功後 | `npm run build`（スキーマ検証を含む）→ `npm run test:e2e`（TC-S）→ Lighthouse CI（TC-N01）→ `actions/upload-pages-artifact` |
+| `check` | すべての push と PR | `npm ci` → `npm audit --audit-level=high`（TC-N09）→ `npm run check:workflows`（TC-N10）→ `npm run check:images`（TC-N15）→ `npm run check:privacy`（TC-N06）→ `npm run lint`（`astro check` による型検査）→ `npm run depcruise`（TC-A01）→ `npm test`（TC-U、TC-I、TC-A01） |
+| `build` | `check` の成功後 | `npm run build`（スキーマ検証を含む）→ `npm run test:e2e`（TC-S、TC-N の自動検査）→ `npm run test:lighthouse`（TC-N01）→ `actions/upload-pages-artifact` |
 | `deploy` | `main` で `build` の成功後 | `actions/deploy-pages` |
 
 - Node.js のバージョンは `.nvmrc` で固定する。
@@ -456,7 +456,7 @@ label: X の DM で問い合わせる
 ├── astro.config.mjs                      CMP-U01 の値の元
 ├── docs/                                 設計ドキュメント
 ├── public/                               favicon、og-default.png、robots.txt
-├── scripts/                              check-astro-imports.mjs（DD-12）、check-workflows.mjs（TC-N10）
+├── scripts/                              check-astro-imports.mjs（DD-12）、check-workflows.mjs（TC-N10）、check-image-metadata.mjs（TC-N15）、check-privacy.mjs（TC-N06）、lighthouse.mjs（TC-N01）
 ├── src/
 │   ├── content.config.ts                 DD-02（CMP-A01 の内部）
 │   ├── content/                          RES-01〜03
@@ -522,7 +522,14 @@ label: X の DM で問い合わせる
 
 ### Content-Security-Policy
 
-GitHub Pages ではレスポンスヘッダーを設定できないため、`<meta http-equiv="Content-Security-Policy">` で指定する。`BaseLayout.astro` が出力する。
+GitHub Pages ではレスポンスヘッダーを設定できないため、`<meta http-equiv="Content-Security-Policy">` で指定する。
+
+**実装（フェーズ 5）**：Astro の `security.csp`（`astro.config.mjs`）を使う。Astro が、ページで使われているスクリプトとスタイルのハッシュを計算して `script-src` と `style-src` を出力するので、インラインのスタイルやスクリプトも `'unsafe-inline'` なしで許可できる。`form-action` と `frame-src` は、`BaseLayout.astro` が `Astro.csp.insertDirective` でページごとに加える。
+
+- フォントを `data:` URI で CSS に埋め込むと `font-src 'self'` に阻まれるため、フォントだけ埋め込みを無効にする（`vite.build.assetsInlineLimit`）。TC-N11 で検出した。
+- コードのハイライト（Shiki）はインラインのスタイルを使うため無効にする（コードブロックを使わない）。
+
+方針として決めた値（Astro が実際に出力する値は、これにハッシュを加えたもの）：
 
 ```
 default-src 'self';
