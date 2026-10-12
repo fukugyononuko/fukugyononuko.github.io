@@ -30,14 +30,14 @@
 
 ## 開発の決まり
 
-振り返り（[フェーズ 0〜3](retrospectives/2026-10-11-phase0-3.md)、[フェーズ 4](retrospectives/2026-10-11-phase4.md)、[フェーズ 5](retrospectives/2026-10-11-phase5.md)、[SNS とカフェ](retrospectives/2026-10-11-sns-cafe.md)、[宇宙の分析](retrospectives/2026-10-11-space.md)、[三体問題シミュレーター](retrospectives/2026-10-11-three-body.md)、[ご意見の反映](retrospectives/2026-10-12-three-body-feedback.md)、[3 次元化](retrospectives/2026-10-12-three-body-3d.md)、[軌跡とフォント](retrospectives/2026-10-12-three-body-trail-fonts.md)）で決めたこと。
+振り返り（[フェーズ 0〜3](retrospectives/2026-10-11-phase0-3.md)、[フェーズ 4](retrospectives/2026-10-11-phase4.md)、[フェーズ 5](retrospectives/2026-10-11-phase5.md)、[SNS とカフェ](retrospectives/2026-10-11-sns-cafe.md)、[宇宙の分析](retrospectives/2026-10-11-space.md)、[三体問題シミュレーター](retrospectives/2026-10-11-three-body.md)、[ご意見の反映](retrospectives/2026-10-12-three-body-feedback.md)、[3 次元化](retrospectives/2026-10-12-three-body-3d.md)、[軌跡とフォント](retrospectives/2026-10-12-three-body-trail-fonts.md)、[tensorcheck の設計](https://github.com/fukugyononuko/tensorcheck/blob/main/docs/retrospectives/2026-10-12-design.md)）で決めたこと。
 
 | # | 決まり | 由来 |
 | --- | --- | --- |
 | 1 | フェーズの始めに、Claude が補った前提と仮定を一覧にして、ユーザーに確認してから進める | T-01 |
 | 2 | PR は常に `main` から作る。前の PR がマージされるまで、次の PR は作らない | T-02 |
 | 3 | 依存を最新以外のバージョンに固定したら、同じ PR で Dependabot の ignore と理由を書く | T-03 |
-| 4 | 実装を始める前に、各 View の項目のデータの出所を、利用規則（01 §1.6）に照らして確かめる。フレームワークに依存する前提は、小さく試して確かめる | T-04 |
+| 4 | 実装を始める前に、各 View の項目のデータの出所を、利用規則（01 §1.6）に照らして確かめる。フレームワークに依存する前提は、小さく試して確かめる。言語・実行環境・依存に関する非機能要件（`no_std`、外部依存なし、対応する版など）は、要件に書く前に最小のコードで確かめる | T-04、[tensorcheck の設計](https://github.com/fukugyononuko/tensorcheck/blob/main/docs/retrospectives/2026-10-12-design.md) T-02 |
 | 5 | ドキュメントを置き換えたり分割したりするときは、旧版の見出しが新版のどこにあるかを対応表で確かめる | T-05 |
 | 6 | `.github/workflows/` を扱う前に、`gh auth status` で `workflow` スコープがあるかを確かめる | T-06 |
 | 7 | 新しいリポジトリでは、最初のコミットだけを `main` に直接 push する。CI が通ったら、すぐに次を設定し、以後は PR を通す：ブランチ保護（CI の成功が必須、force push と削除の禁止、管理者にも適用）、Actions の既定の権限を読み取りのみ、Dependabot alerts と security updates、secret scanning と push protection。CSP を使うサイトでは、最初のページと同時に CSP 違反のテストを入れる（インラインの style 属性と、data: URI で埋め込んだフォントは CSP に阻まれる）。最初に入れるファイル：`.nvmrc`（Rust を使うなら `rust-toolchain.toml`）、`.gitignore`（`.privacy-denylist` を含める）、`.github/dependabot.yml`、CI のワークフロー、検査スクリプト（`check-workflows`、`check-privacy`、必要に応じて `check-image-metadata`、`check-asset-budget`）、`LICENSE`、`README.md`。全体の CSS には `[hidden] { display: none !important; }` を入れる（`display` の指定が `hidden` 属性に勝つのを防ぐ）。手元の clone には、ステージした差分を `.privacy-denylist` と照合する pre-commit フック（`.git/hooks/pre-commit`）を入れ、CI より前の、コミットの時点で止める | [phase4](retrospectives/2026-10-11-phase4.md) T-02、[sns-cafe](retrospectives/2026-10-11-sns-cafe.md) T-01、[three-body](retrospectives/2026-10-11-three-body.md) T-03、プログラムの振り返り（2026-10-12）T-05 |
@@ -49,6 +49,7 @@
 | 13 | 操作できる道具（シミュレーターなど）を作るときは、利用者が変えられる項目と、変えられない項目（固定する理由つき）を一覧にし、作る前にユーザーに確かめる | [three-body-feedback](retrospectives/2026-10-12-three-body-feedback.md) T-01 |
 | 14 | Web フォントを足すときは、使う文字だけにサブセット化し、大きさを予算の検査（決まり 10）に入れる。最初の画面で使うフォントは preload する。フォントを足したら、その場で Lighthouse を実行する | [three-body-feedback](retrospectives/2026-10-12-three-body-feedback.md) T-02、[trail-fonts](retrospectives/2026-10-12-three-body-trail-fonts.md) T-01 |
 | 15 | データの形（次元、項目など）を変えたら、古い形を前提にした書き方（`.x`・`.y` だけを使う箇所など）を検索して洗い出し、新しい形の例ですべての保存則・不変条件をテストする | [three-body-3d](retrospectives/2026-10-12-three-body-3d.md) T-02、T-03 |
+| 16 | 専門分野のライブラリや道具では、要件を書く前に、その分野の標準的な対象・操作・恒等式（どの入力でも成り立つ関係）・前提（式が成り立つ条件や記号の約束）を一覧にし、範囲をユーザーと決める。テストには、特別な解との比較だけでなく、恒等式と、座標などの選び方によらないことを含める | [tensorcheck の設計](https://github.com/fukugyononuko/tensorcheck/blob/main/docs/retrospectives/2026-10-12-design.md) T-01 |
 
 ## ID の規則
 
