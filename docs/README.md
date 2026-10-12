@@ -30,7 +30,7 @@
 
 ## 開発の決まり
 
-振り返り（[フェーズ 0〜3](retrospectives/2026-10-11-phase0-3.md)、[フェーズ 4](retrospectives/2026-10-11-phase4.md)、[フェーズ 5](retrospectives/2026-10-11-phase5.md)、[SNS とカフェ](retrospectives/2026-10-11-sns-cafe.md)、[宇宙の分析](retrospectives/2026-10-11-space.md)、[三体問題シミュレーター](retrospectives/2026-10-11-three-body.md)、[ご意見の反映](retrospectives/2026-10-12-three-body-feedback.md)、[3 次元化](retrospectives/2026-10-12-three-body-3d.md)）で決めたこと。
+振り返り（[フェーズ 0〜3](retrospectives/2026-10-11-phase0-3.md)、[フェーズ 4](retrospectives/2026-10-11-phase4.md)、[フェーズ 5](retrospectives/2026-10-11-phase5.md)、[SNS とカフェ](retrospectives/2026-10-11-sns-cafe.md)、[宇宙の分析](retrospectives/2026-10-11-space.md)、[三体問題シミュレーター](retrospectives/2026-10-11-three-body.md)、[ご意見の反映](retrospectives/2026-10-12-three-body-feedback.md)、[3 次元化](retrospectives/2026-10-12-three-body-3d.md)、[軌跡とフォント](retrospectives/2026-10-12-three-body-trail-fonts.md)）で決めたこと。
 
 | # | 決まり | 由来 |
 | --- | --- | --- |
@@ -47,7 +47,7 @@
 | 11 | コミットするデータ（CSV など）を作るときは、同じ値どうしでも並び順が一意に決まるようにする（タイブレークのキーを入れる） | [space](retrospectives/2026-10-11-space.md) T-04 |
 | 12 | 数値のテストの基準（しきい値）は、先に実際に計測し、理屈（許容誤差、保存則など）と照らして決める。根拠をテストのコメントに書く | [three-body](retrospectives/2026-10-11-three-body.md) T-02 |
 | 13 | 操作できる道具（シミュレーターなど）を作るときは、利用者が変えられる項目と、変えられない項目（固定する理由つき）を一覧にし、作る前にユーザーに確かめる | [three-body-feedback](retrospectives/2026-10-12-three-body-feedback.md) T-01 |
-| 14 | Web フォントを足すときは、使う文字だけにサブセット化し、大きさを予算の検査（決まり 10）に入れる | [three-body-feedback](retrospectives/2026-10-12-three-body-feedback.md) T-02 |
+| 14 | Web フォントを足すときは、使う文字だけにサブセット化し、大きさを予算の検査（決まり 10）に入れる。最初の画面で使うフォントは preload する。フォントを足したら、その場で Lighthouse を実行する | [three-body-feedback](retrospectives/2026-10-12-three-body-feedback.md) T-02、[trail-fonts](retrospectives/2026-10-12-three-body-trail-fonts.md) T-01 |
 | 15 | データの形（次元、項目など）を変えたら、古い形を前提にした書き方（`.x`・`.y` だけを使う箇所など）を検索して洗い出し、新しい形の例ですべての保存則・不変条件をテストする | [three-body-3d](retrospectives/2026-10-12-three-body-3d.md) T-02、T-03 |
 
 ## ID の規則
