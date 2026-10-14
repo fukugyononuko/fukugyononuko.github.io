@@ -30,7 +30,7 @@
 
 ## 開発の決まり
 
-振り返り（[フェーズ 0〜3](retrospectives/2026-10-11-phase0-3.md)、[フェーズ 4](retrospectives/2026-10-11-phase4.md)、[フェーズ 5](retrospectives/2026-10-11-phase5.md)、[SNS とカフェ](retrospectives/2026-10-11-sns-cafe.md)、[宇宙の分析](retrospectives/2026-10-11-space.md)、[三体問題シミュレーター](retrospectives/2026-10-11-three-body.md)、[ご意見の反映](retrospectives/2026-10-12-three-body-feedback.md)、[3 次元化](retrospectives/2026-10-12-three-body-3d.md)、[軌跡とフォント](retrospectives/2026-10-12-three-body-trail-fonts.md)、[tensorcheck の設計](https://github.com/fukugyononuko/tensorcheck/blob/main/docs/retrospectives/2026-10-12-design.md)）で決めたこと。
+振り返り（[フェーズ 0〜3](retrospectives/2026-10-11-phase0-3.md)、[フェーズ 4](retrospectives/2026-10-11-phase4.md)、[フェーズ 5](retrospectives/2026-10-11-phase5.md)、[SNS とカフェ](retrospectives/2026-10-11-sns-cafe.md)、[宇宙の分析](retrospectives/2026-10-11-space.md)、[三体問題シミュレーター](retrospectives/2026-10-11-three-body.md)、[ご意見の反映](retrospectives/2026-10-12-three-body-feedback.md)、[3 次元化](retrospectives/2026-10-12-three-body-3d.md)、[軌跡とフォント](retrospectives/2026-10-12-three-body-trail-fonts.md)、[tensorcheck の設計](https://github.com/fukugyononuko/tensorcheck/blob/main/docs/retrospectives/2026-10-12-design.md)、[tensorcheck の実装](https://github.com/fukugyononuko/tensorcheck/blob/main/docs/retrospectives/2026-10-14-implementation.md)）で決めたこと。
 
 | # | 決まり | 由来 |
 | --- | --- | --- |
@@ -45,11 +45,13 @@
 | 9 | 好みに左右される見た目の選択（配色、主要な写真）は、2〜3 案を並べて見せ、選んでもらってから実装する | [space](retrospectives/2026-10-11-space.md) T-01 |
 | 10 | 性能の予算：1 ページが読み込む CSS は 20KB まで、見出しフォントは 60KB まで。CI（`npm run check:budget`）で検査する | [space](retrospectives/2026-10-11-space.md) T-02 |
 | 11 | コミットするデータ（CSV など）を作るときは、同じ値どうしでも並び順が一意に決まるようにする（タイブレークのキーを入れる） | [space](retrospectives/2026-10-11-space.md) T-04 |
-| 12 | 数値のテストの基準（しきい値）は、先に実際に計測し、理屈（許容誤差、保存則など）と照らして決める。根拠をテストのコメントに書く | [three-body](retrospectives/2026-10-11-three-body.md) T-02 |
+| 12 | 数値のテストの基準（しきい値）は、先に実際に計測し、理屈（許容誤差、保存則など）と照らして決める。根拠をテストのコメントに書く。計測が基準を超えたら、まず実装の不具合を疑う。基準を変えるのは、原因を確かめた（再現や独立な計算で裏づけた）ときだけにする | [three-body](retrospectives/2026-10-11-three-body.md) T-02、[tensorcheck の実装](https://github.com/fukugyononuko/tensorcheck/blob/main/docs/retrospectives/2026-10-14-implementation.md) T-02 |
 | 13 | 操作できる道具（シミュレーターなど）を作るときは、利用者が変えられる項目と、変えられない項目（固定する理由つき）を一覧にし、作る前にユーザーに確かめる | [three-body-feedback](retrospectives/2026-10-12-three-body-feedback.md) T-01 |
 | 14 | Web フォントを足すときは、使う文字だけにサブセット化し、大きさを予算の検査（決まり 10）に入れる。最初の画面で使うフォントは preload する。フォントを足したら、その場で Lighthouse を実行する | [three-body-feedback](retrospectives/2026-10-12-three-body-feedback.md) T-02、[trail-fonts](retrospectives/2026-10-12-three-body-trail-fonts.md) T-01 |
 | 15 | データの形（次元、項目など）を変えたら、古い形を前提にした書き方（`.x`・`.y` だけを使う箇所など）を検索して洗い出し、新しい形の例ですべての保存則・不変条件をテストする | [three-body-3d](retrospectives/2026-10-12-three-body-3d.md) T-02、T-03 |
 | 16 | 専門分野のライブラリや道具では、要件を書く前に、その分野の標準的な対象・操作・恒等式（どの入力でも成り立つ関係）・前提（式が成り立つ条件や記号の約束）を一覧にし、範囲をユーザーと決める。テストには、特別な解との比較だけでなく、恒等式と、座標などの選び方によらないことを含める | [tensorcheck の設計](https://github.com/fukugyononuko/tensorcheck/blob/main/docs/retrospectives/2026-10-12-design.md) T-01 |
+| 17 | 性能の要件があるものは、中心のアルゴリズムを実装したフェーズでベンチマークを取る（最後のフェーズに回さない）。設計の段階の試作も、特別な場合ではなく一般の場合の実装で測る | [tensorcheck の実装](https://github.com/fukugyononuko/tensorcheck/blob/main/docs/retrospectives/2026-10-14-implementation.md) T-01 |
+| 18 | The Method の設計では、概要設計と基本設計（内部）で、層をまたいで共有する型（データの契約）の一覧と置き場所を決める。設計した規則（次元の決め方など）は、外部設計の使い方の例に当てはめて成り立つか確かめる | [tensorcheck の実装](https://github.com/fukugyononuko/tensorcheck/blob/main/docs/retrospectives/2026-10-14-implementation.md) T-03 |
 
 ## ID の規則
 
