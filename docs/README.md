@@ -52,6 +52,8 @@
 | 16 | 専門分野のライブラリや道具では、要件を書く前に、その分野の標準的な対象・操作・恒等式（どの入力でも成り立つ関係）・前提（式が成り立つ条件や記号の約束）を一覧にし、範囲をユーザーと決める。テストには、特別な解との比較だけでなく、恒等式と、座標などの選び方によらないことを含める | [tensorcheck の設計](https://github.com/fukugyononuko/tensorcheck/blob/main/docs/retrospectives/2026-10-12-design.md) T-01 |
 | 17 | 性能の要件があるものは、中心のアルゴリズムを実装したフェーズでベンチマークを取る（最後のフェーズに回さない）。設計の段階の試作も、特別な場合ではなく一般の場合の実装で測る | [tensorcheck の実装](https://github.com/fukugyononuko/tensorcheck/blob/main/docs/retrospectives/2026-10-14-implementation.md) T-01 |
 | 18 | The Method の設計では、概要設計と基本設計（内部）で、層をまたいで共有する型（データの契約）の一覧と置き場所を決める。設計した規則（次元の決め方など）は、外部設計の使い方の例に当てはめて成り立つか確かめる | [tensorcheck の実装](https://github.com/fukugyononuko/tensorcheck/blob/main/docs/retrospectives/2026-10-14-implementation.md) T-03 |
+| 19 | ライブラリでは、設計を確かめるためのユースケースとは別に、用途を示す応用の例題（その分野の実際の問題を 1 つ以上、検証した値と図つき）を要件に入れる。README には、そのコードと図を載せる | [tensorcheck の重力の例題](https://github.com/fukugyononuko/tensorcheck/blob/main/docs/retrospectives/2026-10-16-gravity-examples.md) T-02 |
+| 20 | 例題とテストの数値の判定は、わざと誤り（物理の誤り、符号の誤りなど）を入れて失敗することを確かめ、その結果を PR に書く。成分ごとの判定を、打ち消し合いの起こりうる 1 つの量（不定符号の縮約など）の判定で代用しない | [tensorcheck の重力の例題](https://github.com/fukugyononuko/tensorcheck/blob/main/docs/retrospectives/2026-10-16-gravity-examples.md) T-03 |
 
 ## ID の規則
 
