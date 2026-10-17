@@ -77,6 +77,7 @@ export function article(overrides: Partial<ArticleRecord> & { slug: string; date
     summary: "要約",
     category: "notice",
     tags: [],
+    bodyText: overrides.slug,
     body: `<p>${overrides.slug}</p>`,
     ...overrides,
   };

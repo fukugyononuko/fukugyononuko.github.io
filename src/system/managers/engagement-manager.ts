@@ -2,7 +2,8 @@
 // UC-03（問い合わせる）、UC-04（外部の場へ移る）、UC-06（ニュースを読み、広める）の手順を組み立てる。
 import type {
   Article, ArticleAccess, ArticleCard, Channel, ChannelAccess, ChannelLinkView, ContactView, ContentAccess,
-  CtaEngine, CurationEngine, EngagementManager, InquiryAccess, InquiryChannel, NewsArticleView, Seo, SiteConfig,
+  CtaEngine, CurationEngine, EngagementManager, InquiryAccess, InquiryChannel, NewsArticleView, ReadingTimeEngine, Seo,
+  SiteConfig,
 } from "../contracts";
 import { toAbsoluteUrl, withBase } from "../utilities/config";
 
@@ -23,14 +24,19 @@ export interface EngagementManagerDeps {
   articles: ArticleAccess;
   cta: CtaEngine;
   curation: CurationEngine;
+  readingTime: ReadingTimeEngine;
   seo: Seo;
   config: SiteConfig;
 }
 
 export function createEngagementManager(deps: EngagementManagerDeps): EngagementManager {
-  const { inquiry, channels, content, articles, cta, curation, seo, config } = deps;
+  const { inquiry, channels, content, articles, cta, curation, readingTime, seo, config } = deps;
   const newsPath = (slug: string) => `/news/${slug}/`;
-  const toCard = (a: Article): ArticleCard => ({ ...a, href: withBase(config, newsPath(a.slug)) });
+  const toCard = (a: Article): ArticleCard => ({
+    ...a,
+    href: withBase(config, newsPath(a.slug)),
+    readingMinutes: readingTime.estimateMinutes(a.bodyText),
+  });
   const newsDescription = (siteName: string) => `${siteName}のお知らせ、制作の記録、読み物。`;
 
   return {
@@ -101,6 +107,7 @@ export function createEngagementManager(deps: EngagementManagerDeps): Engagement
       return {
         meta,
         article,
+        readingMinutes: readingTime.estimateMinutes(article.bodyText),
         author: { name: profile.displayName, avatar: profile.avatar },
         share: await channels.listShareLinks({ url: meta.canonical, title: article.title }),
         follow: channelList.map(toLinkView),

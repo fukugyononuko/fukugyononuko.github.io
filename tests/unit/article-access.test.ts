@@ -27,7 +27,7 @@ describe("TC-U07 ArticleAccess：契約の型への変換", () => {
     expect(list.map((a) => a.slug)).toEqual(["same-a", "same-b", "old"]);
     expect(list[0]).toEqual({
       id: "same-a", slug: "same-a", title: "見出し", summary: "要約", category: "notice",
-      date: "2026-10-01", updated: undefined, tags: ["web"], image: undefined,
+      date: "2026-10-01", updated: undefined, tags: ["web"], image: undefined, bodyText: " same-a ",
     });
     expect(list[0]).not.toHaveProperty("body");
   });
@@ -42,8 +42,15 @@ describe("TC-U07 ArticleAccess：契約の型への変換", () => {
     expect(await access(entries).findArticle("nothing")).toBeUndefined();
   });
 
-  it("画像は、ファイルがあれば返す", async () => {
-    const image = { src: "/images/news/a.webp", alt: "説明", caption: "キャプション" };
+  it("bodyText：タグを除き、文字参照（名前、10 進、16 進）を文字に戻す", async () => {
+    const html = '<h2 id="x">A &amp; B</h2><p>1 &lt; 2 &#x26; &#12354;&quot;<a href="/">リンク</a></p>';
+    const [a] = await access([entry("a", {}, html)]).listRecentArticles();
+    expect(a.bodyText.replace(/\s+/g, " ").trim()).toBe('A & B 1 < 2 & あ" リンク');
+    expect((await access([entry("a", {}, html)]).findArticle("a"))?.bodyText).toBe(a.bodyText);
+  });
+
+  it("画像は、ファイルがあれば返す（キャプションとクレジットつき）", async () => {
+    const image = { src: "/images/news/a.webp", alt: "説明", caption: "キャプション", credit: "副業のぬこ" };
     const [a] = await access([entry("a", { image })], ["/images/news/a.webp"]).listRecentArticles();
     expect(a.image).toEqual(image);
   });
@@ -74,6 +81,7 @@ describe("TC-U07 ArticleAccess：検証規則（DD-08）", () => {
     ["タグが 6 個", { tags: ["a", "b", "c", "d", "e", "f"] }],
     ["画像の alt の欠落", { image: { src: "/images/news/a.webp" } }],
     ["画像の置き場所が違う", { image: { src: "/images/a.webp", alt: "説明" } }],
+    ["クレジットが 61 字", { image: { src: "/images/news/a.webp", alt: "説明", credit: "あ".repeat(61) } }],
     ["知らない項目", { author: "だれか" }],
   ];
   it.each(invalid)("%s はスキーマで失敗する", (_name, data) => {

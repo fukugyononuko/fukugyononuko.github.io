@@ -16,6 +16,7 @@ import { astroArticleSource } from "./resource-access/article-access/astro-sourc
 import { createPricingEngine } from "./engines/pricing-engine";
 import { createCurationEngine } from "./engines/curation-engine";
 import { createCtaEngine } from "./engines/cta-engine";
+import { createReadingTimeEngine } from "./engines/reading-time-engine";
 import { createShowcaseManager } from "./managers/showcase-manager";
 import { createEngagementManager } from "./managers/engagement-manager";
 
@@ -31,8 +32,9 @@ const articles = createLocalArticleAccess(astroArticleSource);
 const pricing = createPricingEngine();
 const curation = createCurationEngine();
 const cta = createCtaEngine(channels, config);
+const readingTime = createReadingTimeEngine();
 
 export const showcase: ShowcaseManager = createShowcaseManager({ content, pricing, curation, cta, seo, analytics, config });
 export const engagement: EngagementManager = createEngagementManager({
-  inquiry, channels, content, articles, cta, curation, seo, config,
+  inquiry, channels, content, articles, cta, curation, readingTime, seo, config,
 });

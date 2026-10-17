@@ -1,5 +1,5 @@
 ---
-// CMP-C01 記事のカード（SCR-01、SCR-07、SCR-08 の関連記事。DD-11）
+// CMP-C01 記事のカード（SCR-01、SCR-07、SCR-08 の関連記事。DD-11、FR-18）
 // 画像は飾りとして扱い（alt=""）、見出しのリンクをカード全体に広げる。
 import type { ArticleCard } from "../system/contracts";
 import { categoryLabel, DEFAULT_ARTICLE_IMAGE, formatDate } from "./news-format";
@@ -19,6 +19,7 @@ const Heading = `h${headingLevel}` as "h2" | "h3";
     <p class="meta">
       <span class:list={["category", article.category]}>{categoryLabel[article.category]}</span>
       <time datetime={article.date}>{formatDate(article.date)}</time>
+      <span class="reading">{article.readingMinutes} 分で読めます</span>
     </p>
     <Heading class="title"><a href={article.href}>{article.title}</a></Heading>
     <p class="summary">{article.summary}</p>

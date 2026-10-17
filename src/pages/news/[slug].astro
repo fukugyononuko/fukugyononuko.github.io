@@ -1,6 +1,6 @@
 ---
 // CMP-C01 Pages / SCR-08 記事（DD-11、CC-07、FR-11、FR-15、FR-16）
-// 構成はユーザーが示した資料（NASA のニュースリリースのページ）にならい、縦 1 列で 02a §2a.4 の表の順に並べる。
+// 構成はユーザーが示した資料（NASA のニュースリリースのページ）にならう。PC 幅は 2 列、スマホは 02a §2a.4 の表の順に 1 列（#38）。
 import BaseLayout from "../../layouts/BaseLayout.astro";
 import ArticleCard from "../../components/ArticleCard.astro";
 import ExternalLink from "../../components/ExternalLink.astro";
@@ -20,49 +20,62 @@ const { article } = view;
 <BaseLayout meta={view.meta}>
   <article class="container page">
     <header class="head">
-      <p class="meta">
-        <span class="category">{categoryLabel[article.category]}</span>
+      <p class="reading">{view.readingMinutes} 分で読めます</p>
+      <h1>{article.title}</h1>
+    </header>
+
+    <aside class="side" aria-label="記事の情報">
+      <p class="item author">
+        <img src={view.author.avatar.src} alt="" width="40" height="40" />
+        <span>{view.author.name}</span>
+      </p>
+      <p class="item date">
         <time datetime={article.date}>{formatDate(article.date)}</time>
         {article.updated && article.updated !== article.date && (
           <span class="updated">更新：<time datetime={article.updated}>{formatDate(article.updated)}</time></span>
         )}
       </p>
-      <h1>{article.title}</h1>
-      <p class="author">
-        <img src={view.author.avatar.src} alt="" width="40" height="40" />
-        <span>{view.author.name}</span>
-      </p>
-      <ShareButtons links={view.share} url={view.meta.canonical} position="top" />
-    </header>
+      <p class="item"><span class="category">{categoryLabel[article.category]}</span></p>
+      <div class="item">
+        <ShareButtons links={view.share} url={view.meta.canonical} position="top" />
+      </div>
+    </aside>
 
-    {article.image && (
-      <figure class="hero">
-        <img src={article.image.src} alt={article.image.alt} width="1600" height="900" fetchpriority="high" />
-        {article.image.caption && <figcaption>{article.image.caption}</figcaption>}
-      </figure>
-    )}
-
-    <div class="body" set:html={article.body} />
-
-    <footer class="foot">
-      <ShareButtons links={view.share} url={view.meta.canonical} position="bottom" />
-      {view.follow.length > 0 && (
-        <section class="follow" aria-labelledby="follow">
-          <h2 id="follow">{view.author.name}をフォローする</h2>
-          <ul>
-            {view.follow.map((c) => (
-              <li><ExternalLink class="channel" href={c.url}><Icon name={c.icon} />{c.label}</ExternalLink></li>
-            ))}
-          </ul>
-        </section>
+    <div class="main">
+      {article.image && (
+        <figure class="hero">
+          <img src={article.image.src} alt={article.image.alt} width="1600" height="900" fetchpriority="high" />
+          {(article.image.caption || article.image.credit) && (
+            <figcaption>
+              {article.image.caption && <span class="caption">{article.image.caption}</span>}
+              {article.image.credit && <span class="credit">クレジット：{article.image.credit}</span>}
+            </figcaption>
+          )}
+        </figure>
       )}
-      {article.tags.length > 0 && (
-        <p class="tags">
-          <span class="visually-hidden">タグ：</span>
-          {article.tags.map((t) => <span class="tag">#{t}</span>)}
-        </p>
-      )}
-    </footer>
+
+      <div class="body" set:html={article.body} />
+
+      <footer class="foot">
+        <ShareButtons links={view.share} url={view.meta.canonical} position="bottom" />
+        {view.follow.length > 0 && (
+          <section class="follow" aria-labelledby="follow">
+            <h2 id="follow">{view.author.name}をフォローする</h2>
+            <ul>
+              {view.follow.map((c) => (
+                <li><ExternalLink class="channel" href={c.url}><Icon name={c.icon} />{c.label}</ExternalLink></li>
+              ))}
+            </ul>
+          </section>
+        )}
+        {article.tags.length > 0 && (
+          <p class="tags">
+            <span class="visually-hidden">タグ：</span>
+            {article.tags.map((t) => <span class="tag">#{t}</span>)}
+          </p>
+        )}
+      </footer>
+    </div>
   </article>
 
   {view.related.length > 0 && (
@@ -78,40 +91,53 @@ const { article } = view;
 
 <style>
   .page {
-    max-width: 52rem;
     padding-block: var(--space-8) var(--space-6);
   }
-  .head,
-  .body,
-  .foot {
-    max-width: 40rem;
-    margin-inline: auto;
+  /* PC 幅：参考のページと同じく、左に記事の情報、右に見出し・画像・本文（02a §2a.4 SCR-08、DD-11） */
+  @media (min-width: 64rem) {
+    .page {
+      display: grid;
+      grid-template-columns: 14rem minmax(0, 1fr);
+      grid-template-areas:
+        ". head"
+        "side main";
+      column-gap: 3rem;
+    }
+    .head {
+      grid-area: head;
+    }
+    .side {
+      grid-area: side;
+      align-self: start;
+    }
+    .main {
+      grid-area: main;
+    }
   }
-  .meta {
-    display: flex;
-    flex-wrap: wrap;
-    align-items: center;
-    gap: var(--space-2) var(--space-3);
+  .reading {
     margin: 0;
     color: var(--color-text-muted);
-    font-size: 0.9375rem;
-  }
-  .category {
-    padding: 0 var(--space-3);
-    border-radius: var(--radius-full);
-    background: var(--color-sea-soft);
-    color: var(--color-text);
+    font-size: 0.875rem;
     font-weight: 700;
+    letter-spacing: 0.08em;
   }
   h1 {
-    margin: var(--space-3) 0 var(--space-4);
+    margin: var(--space-2) 0 var(--space-6);
     font-size: clamp(1.75rem, 5.5vw, 2.5rem);
+  }
+  .side {
+    margin-bottom: var(--space-6);
+    border-top: 1px solid var(--color-border);
+  }
+  .item {
+    margin: 0;
+    padding-block: var(--space-3);
+    border-bottom: 1px solid var(--color-border);
   }
   .author {
     display: flex;
     align-items: center;
     gap: var(--space-2);
-    margin: 0 0 var(--space-4);
     font-weight: 700;
   }
   .author img {
@@ -119,8 +145,25 @@ const { article } = view;
     height: 2.5rem;
     border-radius: var(--radius-full);
   }
+  .date {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0 var(--space-3);
+    font-size: 0.9375rem;
+  }
+  .updated {
+    color: var(--color-text-muted);
+  }
+  .category {
+    padding: 0 var(--space-3);
+    border-radius: var(--radius-full);
+    background: var(--color-sea-soft);
+    color: var(--color-text);
+    font-size: 0.875rem;
+    font-weight: 700;
+  }
   .hero {
-    margin: var(--space-8) 0;
+    margin: 0 0 var(--space-8);
   }
   .hero img {
     width: 100%;
@@ -130,12 +173,20 @@ const { article } = view;
     box-shadow: 0 8px 32px var(--color-shadow);
   }
   figcaption {
+    display: flex;
+    flex-direction: column;
     margin-top: var(--space-2);
     color: var(--color-text-muted);
     font-size: 0.875rem;
   }
+  .credit {
+    color: var(--color-text);
+  }
+  .body,
+  .foot {
+    max-width: 40rem;
+  }
   .body {
-    margin-top: var(--space-8);
     font-size: 1.0625rem;
   }
   .body :global(h2) {
@@ -150,6 +201,9 @@ const { article } = view;
   .body :global(ul),
   .body :global(ol) {
     margin: 0 0 var(--space-4);
+  }
+  .body :global(p:first-child) {
+    margin-top: 0;
   }
   .body :global(blockquote) {
     margin: 0 0 var(--space-4);
@@ -213,7 +267,7 @@ const { article } = view;
   .cards {
     display: grid;
     gap: var(--space-4);
-    grid-template-columns: repeat(auto-fit, minmax(16rem, 1fr));
+    grid-template-columns: repeat(auto-fill, minmax(16rem, 1fr));
     margin: 0;
     padding: 0;
     list-style: none;

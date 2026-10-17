@@ -31,7 +31,7 @@ test.describe("TC-S01：SCR-07、SCR-08 の画面項目", () => {
   test("SCR-08 記事", async ({ page }) => {
     await page.goto(ARTICLE);
     await expect(page.getByRole("heading", { level: 1 })).toHaveText("ホームページにニュース欄を作りました");
-    await expect(page.locator(".head .category")).toHaveText("お知らせ");
+    await expect(page.locator(".side .category")).toHaveText("お知らせ");
     await expect(page.locator(".author")).toContainText("副業のぬこ");
     await expect(page.locator('meta[property="og:type"]')).toHaveAttribute("content", "article");
     await expect(page.locator(".body p").first()).not.toBeEmpty();
@@ -56,10 +56,44 @@ test("TC-S11：ナビゲーション → 一覧 → 記事。トップの最新�
   await expect(page).toHaveURL(/\/news\/[a-z0-9-]+\/$/);
 
   await page.goto(ARTICLE);
-  // 画像のない記事なので .hero はない。関連記事は記事が 1 件のうちは出ない
-  const order = await domOrder(page, [".head .meta", "h1", ".author", "[data-share]", ".body", ".foot [data-share]", ".follow", ".tags"]);
+  await expect(page.locator(".head .reading")).toHaveText(/^\d+ 分で読めます$/);
+  // HTML の順（スマホの並び）。画像のない記事なので .hero はない。関連記事は記事が 1 件のうちは出ない
+  const order = await domOrder(page, [".reading", "h1", ".side .author", ".side time", ".side .category", ".side [data-share]", ".body", ".foot [data-share]", ".follow", ".tags"]);
   expect(order.every((n) => n > -1), `見つからない項目がある：${order}`).toBe(true);
   expect(order).toEqual([...order].sort((a, b) => a - b));
+});
+
+test("TC-S11：記事カードに読む時間がある", async ({ page }) => {
+  for (const path of ["/", "/news/"]) {
+    await page.goto(path);
+    await expect(page.locator(".card .reading").first()).toHaveText(/^\d+ 分で読めます$/);
+  }
+});
+
+test.describe("TC-S11：記事のページの位置関係", () => {
+  test.describe("幅 1280px：2 列", () => {
+    test.use({ viewport: { width: 1280, height: 900 } });
+    test("左の列が本文の列の左にあり、上端は見出しより下", async ({ page }) => {
+      await page.goto(ARTICLE);
+      const side = (await page.locator(".side").boundingBox())!;
+      const main = (await page.locator(".main").boundingBox())!;
+      const h1 = (await page.locator("h1").boundingBox())!;
+      expect(side.x + side.width).toBeLessThanOrEqual(main.x);
+      expect(h1.x).toBeCloseTo(main.x, 0);
+      expect(side.y).toBeGreaterThanOrEqual(h1.y + h1.height);
+      expect(Math.abs(side.y - main.y)).toBeLessThanOrEqual(1);
+    });
+  });
+  test.describe("幅 360px：1 列", () => {
+    test.use({ viewport: { width: 360, height: 780 } });
+    test("左の列が本文の上にある", async ({ page }) => {
+      await page.goto(ARTICLE);
+      const side = (await page.locator(".side").boundingBox())!;
+      const main = (await page.locator(".main").boundingBox())!;
+      expect(side.y + side.height).toBeLessThanOrEqual(main.y);
+      expect(Math.abs(side.x - main.x)).toBeLessThanOrEqual(1);
+    });
+  });
 });
 
 test("TC-S12：共有リンクとフォローのリンク、リンクのコピー", async ({ page, context }) => {
