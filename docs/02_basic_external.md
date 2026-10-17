@@ -9,6 +9,9 @@
 | `/services/` | SCR-03 サービス一覧 | 静的 |
 | `/services/{slug}/` | SCR-04 サービス詳細 | 公開中のサービスごとに静的生成 |
 | `/contact/` | SCR-05 問い合わせ | 静的 |
+| `/news/` | SCR-07 ニュース一覧 | 静的 |
+| `/news/{slug}/` | SCR-08 記事 | 公開中の記事ごとに静的生成 |
+| `/news/rss.xml` | — | ビルド時に生成（FR-17） |
 | `/contact/?service={slug}` | SCR-05（サービス指定あり） | 同じ HTML。クエリはブラウザ側で読む |
 | `/404.html` | SCR-06 Not Found | 静的（GitHub Pages が自動で使う） |
 | `/sitemap-index.xml`, `/robots.txt` | — | ビルド時に生成（NFR-04） |
@@ -25,9 +28,13 @@ flowchart LR
   S01 --> S03["SCR-03 サービス一覧"]
   S01 --> S04["SCR-04 サービス詳細"]
   S03 --> S04
+  S01 --> S08["SCR-08 記事"]
+  S07["SCR-07 ニュース一覧"] --> S08
+  S08 -->|関連記事| S08
+  S08 -->|"共有・フォロー"| EXT
   S04 -->|"行動喚起：問い合わせ"| S05["SCR-05 問い合わせ"]
   S04 -->|"行動喚起：外部"| EXT["外部の場<br/>（note など）"]
-  S00["SCR-00 共通レイアウト"] -.->|ナビゲーション| S01 & S02 & S03 & S05
+  S00["SCR-00 共通レイアウト"] -.->|ナビゲーション| S01 & S02 & S03 & S07 & S05
   S00 -.->|フッターのリンク| EXT
   S05 -->|送信・遷移| INQ["問い合わせ手段（EIF-01）"]
   S06["SCR-06 Not Found"] --> S01
@@ -38,12 +45,14 @@ flowchart LR
 | ID | 画面 | 目的 | 関連する UC / FR |
 | --- | --- | --- | --- |
 | SCR-00 | 共通レイアウト | すべての画面に共通するヘッダー、フッター、メタ情報 | UC-04 / FR-10, NFR-04, NFR-05 |
-| SCR-01 | トップ | 運営者とサービスの要点を示し、詳細へ誘導する | UC-01, UC-02 / FR-09 |
+| SCR-01 | トップ | 運営者とサービスの要点、最新のニュースを示し、詳細へ誘導する | UC-01, UC-02, UC-06 / FR-09, FR-11 |
 | SCR-02 | About | 運営者のプロフィール、スキル、制作例 | UC-01 / FR-01, FR-02, FR-03 |
 | SCR-03 | サービス一覧 | 提供サービスを一覧で示す | UC-02 / FR-04, FR-06 |
 | SCR-04 | サービス詳細 | 1 つのサービスの詳細と行動喚起 | UC-02 / FR-05, FR-06, FR-07 |
 | SCR-05 | 問い合わせ | 問い合わせ手段を示す | UC-03 / FR-08 |
 | SCR-06 | Not Found | 存在しない URL への案内 | — / FR-12 |
+| SCR-07 | ニュース一覧 | 記事を新しい順にカードで示す | UC-06 / FR-11, FR-17 |
+| SCR-08 | 記事 | 1 つの記事と、共有・フォロー・関連記事 | UC-06, UC-04 / FR-11, FR-15, FR-16 |
 
 ## 2a.4 画面項目
 
@@ -54,7 +63,7 @@ flowchart LR
 | 項目 | 内容 | 取得元 |
 | --- | --- | --- |
 | サイト名 | 表示名。トップへのリンク | `ShowcaseManager.getLayoutView` |
-| ナビゲーション | About / サービス / 問い合わせ | Client で固定 |
+| ナビゲーション | About / サービス / ニュース / 問い合わせ | Client で固定 |
 | 外部チャネルのリンク | アイコンとラベル。新しいタブで開く（`rel="noopener noreferrer"`） | `EngagementManager.getChannelLinks` |
 | コピーライト | `© {年} {表示名}` | `ShowcaseManager.getLayoutView` |
 | メタ情報 | title、description、canonical、OGP、Twitter Card | 各画面の View に含まれる `meta`（CMP-U02） |
@@ -67,7 +76,8 @@ flowchart LR
 | ヒーロー | アイコン、表示名、キャッチコピー | `ShowcaseManager.getHomeView` |
 | 注目のスキル | 最大 N 件（N は表示設定） | 同上（CMP-E02 で選ぶ） |
 | 注目の制作例 | 最大 N 件 | 同上 |
-| 注目のサービス | 最大 N 件。カードにはタイトル、要約、価格表示 | 同上（CMP-E02、CMP-E01） |
+| 最新のニュース | 最大 3 件の記事カード（SCR-07 と同じ形）と、一覧へのリンク。「サービス」の上に置く。0 件なら欄ごと出さない | `EngagementManager.getArticleFeedView(3)` |
+| 注目のサービス | 最大 N 件。カードにはタイトル、要約、価格表示 | `ShowcaseManager.getHomeView`（CMP-E02、CMP-E01） |
 | 誘導 | 「サービスを見る」「問い合わせる」 | Client で固定 |
 
 ### SCR-02 About
@@ -112,6 +122,32 @@ flowchart LR
 | メッセージ | ページが見つからないこと | Client で固定 |
 | 誘導 | トップへのリンク | Client で固定 |
 
+### SCR-07 ニュース一覧
+
+| 項目 | 内容 | 取得元 |
+| --- | --- | --- |
+| 記事カード | 画像（なければ既定の画像）、分類、公開日、見出し、要約。カード全体が記事へのリンク。新しい順 | `EngagementManager.getNewsIndexView` |
+| 0 件のとき | 「ニュースは準備中です」 | 同上（空配列） |
+| RSS | `/news/rss.xml` へのリンク | 同上 |
+
+### SCR-08 記事
+
+ユーザーが示した資料（NASA のニュースリリースのページ）の構成にならい、上から次の順に縦 1 列で並べる（レイアウト A）。本文の幅は約 40 文字（`40em`）に抑える。
+
+| 順 | 項目 | 内容 | 取得元 |
+| --- | --- | --- | --- |
+| 1 | 分類・日付 | 分類のラベル（お知らせ / 制作 / 読み物）と公開日。更新日があれば「更新：」を添える。日付は `<time datetime>` | `EngagementManager.getNewsArticleView` |
+| 2 | 見出し | `h1` | 同上 |
+| 3 | 筆者 | 運営者のアイコンと表示名 | 同上（CMP-A01） |
+| 4 | 共有（上） | X・Threads・はてなブックマークの共有リンク（新しいタブ）と、リンクのコピー（JavaScript が有効なときだけ表示） | 同上（CMP-A03）＋ Client 側の補助スクリプト |
+| 5 | 画像 | 16:9 の大きな画像とキャプション（任意）。画像がない記事では出さない | 同上 |
+| 6 | 本文 | Markdown | 同上 |
+| 7 | 共有（下） | 4 と同じ | 同上 |
+| 8 | フォロー | 外部チャネル（RES-03）へのリンク。「副業のぬこをフォローする」 | 同上（CMP-A03） |
+| 9 | タグ | タグの一覧（文字だけ。タグ別の一覧ページは作らない） | 同上 |
+| 10 | 関連記事 | 最大 3 件の記事カード。0 件なら欄ごと出さない | 同上（CMP-E02） |
+| — | 一覧へ戻る | 「ニュースの一覧へ」 | Client で固定 |
+
 ## 2a.5 問い合わせ手段の表示
 
 問い合わせ手段の種類（OPEN-01 で決める）ごとの表示方法。種類は CMP-A02 InquiryAccess が返し、Client はそれに応じて描き分けるだけにする。
@@ -131,6 +167,8 @@ flowchart LR
 | EIF-03 | GitHub Pages / GitHub Actions | リポジトリ → 公開 | `actions/upload-pages-artifact` と `actions/deploy-pages` | 初期 |
 | EIF-04 | アクセス解析（OPEN-06） | ブラウザ → 外部 | 計測スクリプト | 未定 |
 | EIF-05 | その他の外部チャネル（X、GitHub など） | サイト → 外部 | リンク | 初期 |
+| EIF-06 | 記事の共有先（X、Threads、はてなブックマーク） | ブラウザ → 外部 | 共有用 URL へのリンク（外部スクリプトは読み込まない） | 初期 |
+| EIF-07 | RSS リーダー | 外部 → サイト | `/news/rss.xml`（RSS 2.0）を取得する | 初期 |
 
 ### EIF-01 問い合わせの受付先
 
@@ -141,7 +179,19 @@ flowchart LR
 ### EIF-02 note
 
 - 初期はリンクだけ。URL は RES-03 に書く。
-- 将来は、ビルド時に RSS（`https://note.com/{id}/rss`）を取得する（CMP-A04）。取得できなくてもビルドは失敗させず、記事一覧を出さないだけにする（DD-14）。
+- 将来、note の記事もニュースに並べるときは、ビルド時に RSS（`https://note.com/{id}/rss`）を取得する（CMP-A04）。取得できなくてもビルドは失敗させず、note の記事を出さないだけにする（DD-14）。
+
+### EIF-06 記事の共有先
+
+- 共有ボタンは、各サービスの共有用 URL へのリンクにする。共有先の埋め込みスクリプトやボタンの画像は読み込まない（NFR-15、NFR-16。CSP を変えずに済む）。
+- 共有先と URL の形は RES-03（`share-targets.yaml`）に書く。記事の URL と見出しは、URL エンコードして埋め込む（DD-07）。
+- 新しいタブで開き、`rel="noopener noreferrer"` を付ける（`ExternalLink.astro`）。
+- 「リンクのコピー」は外部に何も送らない。ブラウザのクリップボード API で記事の URL をコピーする。
+
+### EIF-07 RSS リーダー
+
+- RSS 2.0。項目は見出し、記事の絶対 URL、公開日（RFC 822）、要約。新しい順に全件（記事が増えたら件数を絞る）。
+- 共通レイアウトの `<head>` に `<link rel="alternate" type="application/rss+xml">` を置く。
 
 ### EIF-03 GitHub Pages
 
@@ -209,6 +259,7 @@ flowchart LR
 | `public/images/avatar-320.webp` | ヘッダーのアイコン（カモメの部分を正方形に切り抜き） | 320px |
 | `public/favicon.png`、`apple-touch-icon.png` | ブラウザのタブ、ホーム画面 | 64 / 180px |
 | `public/og-default.jpg` | SNS で共有されたときの画像 | 1200 × 630px |
+| `public/images/news/{slug}.webp` など | 記事の画像（任意）。SCR-08 の大きな画像、記事カード、記事の OGP 画像に使う。画像のない記事では、カードに既定の画像（`og-default.jpg`）を出す | 幅 1600px まで、16:9 を推奨 |
 
 - 元の写真は運営者が SNS のアイコンに使っているもの。
 - すべて EXIF などのメタデータを削除してから置く（NFR-06）。CI で検査する（TC-N15）。
@@ -223,6 +274,8 @@ flowchart LR
 | `ExternalLink.astro` | 外部リンクを出す唯一の部品（NFR-16） |
 | `Section.astro` | 見出しつきのセクション |
 | `ServiceCard.astro`、`WorkList.astro` | サービスのカード、制作例の一覧（種類のラベルつき） |
+| `ArticleCard.astro` | 記事のカード（画像、分類、公開日、見出し、要約）。SCR-01、SCR-07、SCR-08 の関連記事で使う |
+| `ShareButtons.astro` | 共有リンクとリンクのコピー（SCR-08 の上と下） |
 | `inquiry/{FormPost,Embed,Link}.astro` | 問い合わせ手段の種類ごとの表示（§2a.5） |
 
 レイアウトの決まり：

@@ -14,7 +14,7 @@
 | CMP-A01 | ContentAccess | ResourceAccess | VOL-05 | 初期 |
 | CMP-A02 | InquiryAccess | ResourceAccess | VOL-01 | 初期 |
 | CMP-A03 | ChannelAccess | ResourceAccess | VOL-07 | 初期 |
-| CMP-A04 | ArticleAccess | ResourceAccess | VOL-06 | 将来 |
+| CMP-A04 | ArticleAccess | ResourceAccess | VOL-06 | 初期 |
 | CMP-U01 | Config | Utility | VOL-08 | 初期 |
 | CMP-U02 | Seo | Utility | —（§1.3） | 初期 |
 | CMP-U03 | Analytics | Utility | VOL-09 | 初期 |
@@ -45,13 +45,17 @@
 | `getServiceDetailView(slug)` | 1 サービスの詳細（価格表示と行動喚起つき） | A01, E01, E03, U02 |
 
 ### CMP-M02 EngagementManager
-- 責務：訪問者を問い合わせや外部の場に「つなぐ」手順の組み立て。
+- 責務：訪問者を問い合わせや外部の場に「つなぐ」手順の組み立て。ニュースを読ませ、共有・フォローにつなぐ手順（UC-06）も持つ（01 §1.4）。
 
 | 操作 | 意味 | 呼び出す相手 |
 | --- | --- | --- |
 | `getChannelLinks()` | 共通フッターに出す外部チャネルのリンク | A03 |
 | `getContactView()` | 問い合わせ手段と、問い合わせで指定できるサービスの選択肢 | A02, A01, E03, U02 |
-| `getArticleFeedView(limit)` | 最新記事の一覧（将来） | A04 |
+| `getArticleFeedView(limit)` | 最新の記事カード（最大 `limit` 件。トップ用） | A04 |
+| `getNewsIndexView()` | ニュース一覧（すべての記事カード、新しい順） | A04, A01, U02 |
+| `listArticleSlugs()` | 記事のページを生成する slug の一覧 | A04 |
+| `getNewsArticleView(slug)` | 1 つの記事と、筆者・共有リンク・フォローのリンク・関連記事 | A04, A01, A03, E02, U02 |
+| `getNewsFeed()` | RSS フィードの中身（絶対 URL つき） | A04, A01, U01 |
 
 `getContactView` は、各サービスについて CtaEngine に導線を判定させ、導線が「問い合わせ」のサービスだけを選択肢にする。note で販売しているもの（将来）を問い合わせの選択肢に出さないため。
 
@@ -63,6 +67,7 @@
 - 責務：項目の集合から、注目項目を選び、並べる（VOL-04）。
 - `pickFeatured(items, rule)`：規則に従って最大 N 件を選ぶ。
 - `arrange(items, rule)`：規則に従って並べる。
+- `pickRelated(items, base, limit)`：`base` と関連の強い項目を最大 `limit` 件選ぶ（記事の関連記事。DD-04）。タグを持つ項目（`Taggable`）を扱い、記事であることは知らない。
 - スキル、制作例、サービスに共通の「並べられる項目」（`Curatable`）として扱い、種類ごとの違いを知らない。
 
 ### CMP-E03 CtaEngine
@@ -92,10 +97,13 @@
 - 責務：外部チャネルの一覧（RES-03）を提供する（VOL-07）。
 - `listChannels()`：表示順に並んだ外部チャネル。
 - `findChannel(id)`：チャネル 1 件。なければ `undefined`。
+- `listShareLinks(page)`：ページ（絶対 URL と見出し）を共有するリンクを、表示順に返す。共有用 URL の形（RES-03）を隠す。
 
-### CMP-A04 ArticleAccess（将来）
-- 責務：記事の出所（note の RSS、自サイトのブログなど）を隠して、記事の一覧を提供する（VOL-06）。
-- `listRecentArticles(limit)`：新しい順に最大 `limit` 件。取得に失敗したら空の一覧を返し、警告を出す。
+### CMP-A04 ArticleAccess
+- 責務：記事の出所（初期は自サイトのニュース。将来は note の RSS なども）を隠して、記事を提供する（VOL-06）。
+- `listRecentArticles(limit?)`：公開中の記事を新しい順に最大 `limit` 件（省略時はすべて）。本文は含めない。外部から取得する実装（将来）では、取得に失敗したら空の一覧を返し、警告を出す。
+- `findArticle(slug)`：公開中の記事 1 件（本文つき）。なければ `undefined`。
+- 下書き（`draft: true`）は返さない。
 
 ### CMP-U01 Config
 - 責務：公開先に関わる設定（サイト URL、ベースパス、言語）を提供する（VOL-08）。
@@ -121,6 +129,7 @@
 | CC-04 | 問い合わせ | UC-03 |
 | CC-05 | 外部の場への移動 | UC-04 |
 | CC-06 | コンテンツの更新と公開 | UC-05 |
+| CC-07 | ニュースの表示と共有 | UC-06 |
 
 ### CC-01 トップの表示（ビルド時）
 
@@ -221,20 +230,14 @@ sequenceDiagram
   participant P as C01 Pages（共通レイアウト）
   participant EM as M02 EngagementManager
   participant CH as A03 ChannelAccess
-  participant AA as A04 ArticleAccess（将来）
   actor V as 訪問者のブラウザ
   P->>EM: getChannelLinks()
   EM->>CH: listChannels()
   EM-->>P: ChannelLinkView[]
-  opt 将来：記事一覧
-    P->>EM: getArticleFeedView(limit)
-    EM->>AA: listRecentArticles(limit)
-    EM-->>P: ArticleFeedView
-  end
   V->>V: リンクを選ぶと新しいタブで外部の場が開く
 ```
 
-サービス詳細の行動喚起からの移動は CC-03 で解決済みのリンクを使う。
+サービス詳細の行動喚起からの移動は CC-03 で、記事のページのフォローのリンクは CC-07 で解決済みのリンクを使う。
 
 ### CC-06 コンテンツの更新と公開
 
@@ -256,6 +259,41 @@ sequenceDiagram
   end
 ```
 
+### CC-07 ニュースの表示と共有
+
+```mermaid
+sequenceDiagram
+  participant P as C01 Pages（/、/news/…）
+  participant EM as M02 EngagementManager
+  participant AA as A04 ArticleAccess
+  participant CA as A01 ContentAccess
+  participant CH as A03 ChannelAccess
+  participant CE as E02 CurationEngine
+  participant SEO as U02 Seo
+  actor V as 訪問者のブラウザ
+  Note over P,SEO: ビルド時
+  P->>EM: getArticleFeedView(3)（トップ）/ getNewsIndexView()（一覧）
+  EM->>AA: listRecentArticles(limit)
+  EM-->>P: ArticleFeedView / NewsIndexView
+  P->>EM: listArticleSlugs()
+  loop slug ごと
+    P->>EM: getNewsArticleView(slug)
+    EM->>AA: findArticle(slug)
+    EM->>AA: listRecentArticles()
+    EM->>CE: pickRelated(articles, article, 3)
+    EM->>CA: getOperatorProfile()（筆者）
+    EM->>SEO: buildPageMeta(...)（type: article、記事の画像）
+    EM->>CH: listShareLinks({ url: canonical, title })
+    EM->>CH: listChannels()（フォロー）
+    EM-->>P: NewsArticleView
+  end
+  P->>EM: getNewsFeed()（/news/rss.xml）
+  EM->>AA: listRecentArticles()
+  EM-->>P: NewsFeedView
+  Note over V: 閲覧時
+  V->>V: 共有リンクを選ぶと新しいタブで共有先が開く。「リンクをコピー」は記事の URL をクリップボードに入れる（JS が有効なときだけ）
+```
+
 ## 2b.4 変動性への対応の確認
 
 各変動性が起きたとき、変更が 1 つの構成要素（とデータ・設定）の中で済むことを確認する。テストとしては TC-R01〜TC-R11（04 §4.6）でレビューする。
@@ -267,9 +305,25 @@ sequenceDiagram
 | VOL-03 | 「〜円から」に統一 | RES-01 の表示設定。新しい見せ方なら E01 | それ以外のすべて |
 | VOL-04 | 注目項目を新しい順に | RES-01 の表示設定。新しい規則なら E02 | それ以外のすべて |
 | VOL-05 | CMS に移行 | A01 | Manager、Engine、ページ |
-| VOL-06 | note の RSS → 自サイトのブログ | A04 | M02、ページ |
-| VOL-07 | チャネルを追加 | RES-03 | それ以外のすべて |
+| VOL-06 | 自サイトのニュースに note の記事も並べる | A04（と `compose.ts`） | M02、ページ |
+| VOL-07 | チャネルや共有先を追加 | RES-03（共有先のアイコンが新しければ C01 の `Icon.astro` も） | Manager、Engine、ページ |
 | VOL-08 | 独自ドメインに移行 | U01（と DNS） | それ以外のすべて |
 | VOL-09 | アクセス解析を導入 | U03 と設定 | それ以外のすべて |
 | VOL-10 | デザインを変更 | C01 | Business Logic 以下のすべて |
-| VOL-11 | トップに記事一覧を追加 | M01 / M02 の手順と C01 の表示 | Engine、ResourceAccess |
+| VOL-11 | 記事のページにサービスへの誘導を足す | M01 / M02 の手順と C01 の表示 | Engine、ResourceAccess |
+
+## 2b.5 層をまたいで共有する型（データの契約）
+
+決まり 18 に従い、層をまたいで受け渡す型と置き場所をここで決める。定義は 03 §3.1（DD-01）。どれも `src/system/contracts/` に置き、他の層に依存しない（R9）。
+
+| 型 | 置き場所 | 作る層 → 使う層 | 内容 |
+| --- | --- | --- | --- |
+| `Taggable` | `records.ts` | —（Engine の入力の形） | `Curatable` にタグ（`tags: string[]`）を足したもの。CurationEngine の `pickRelated` が受け取る |
+| `ArticleCategory` | `records.ts` | A04 → M02 → C01 | 記事の分類 `"notice" \| "work" \| "essay"`。表示のラベルは Client が持つ（制作例の種類と同じ。DD-11） |
+| `Article`、`ArticleImage` | `records.ts` | A04 → M02 → C01 | 記事の要約（一覧用、本文なし）と画像。`Article` は `Taggable` |
+| `ArticleRecord` | `records.ts` | A04 → M02 | 本文（`TrustedHtml`）つきの記事 |
+| `ShareLink` | `records.ts` | A03 → M02 → C01 | 共有先 1 つ分の、解決済みのリンク（ラベル、アイコン名、URL） |
+| `ArticleCard` | `views.ts` | M02 → C01 | 記事カード（`Article` に記事ページの `href` を足したもの） |
+| `ArticleFeedView`、`NewsIndexView`、`NewsArticleView`、`NewsFeedView` | `views.ts` | M02 → C01 | 各画面と RSS の View |
+
+旧版の `Article`（`title`、`url`、`publishedAt`、`source`。note の RSS を想定した将来の型）は、自サイトの記事に合わせて置き換える。旧版を使っていたのは「記事なし」の実装（`createNoArticleAccess`）だけで、画面からは使っていない。

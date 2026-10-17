@@ -11,7 +11,7 @@
 | DD-05 | 導線の決め方 | CMP-E03 |
 | DD-06 | 問い合わせ手段の設定 | CMP-A02, RES-02 |
 | DD-07 | 外部チャネルの設定 | CMP-A03, RES-03 |
-| DD-08 | 記事の取得（将来） | CMP-A04, RES-04 |
+| DD-08 | ニュースの記事 | CMP-A04, RES-04 |
 | DD-09 | Manager の実装方針 | CMP-M01, CMP-M02 |
 | DD-10 | Utility | CMP-U01〜U03 |
 | DD-11 | Client（ページとコンポーネント） | CMP-C01 |
@@ -111,7 +111,17 @@ export interface InquiryField {
   param?: string;   // 送信先に渡す項目名（受付先のサービスの決まりに合わせる。省略時は name）
 }
 
-export interface Article { title: string; url: string; publishedAt: string; source: string }
+export interface Taggable { id: string; date?: string; tags: string[] }   // pickRelated の入力（DD-04）
+export type ArticleCategory = "notice" | "work" | "essay";               // お知らせ / 制作 / 読み物（FR-11）
+export interface ArticleImage extends ImageRef { caption?: string }
+export interface Article extends Taggable {                              // 一覧用（本文なし）
+  slug: string; title: string; summary: string; category: ArticleCategory;
+  date: string;          // 公開日
+  updated?: string;      // 更新日
+  image?: ArticleImage;
+}
+export interface ArticleRecord extends Article { body: TrustedHtml }
+export interface ShareLink { id: string; label: string; icon: string; url: string }   // 解決済みの共有リンク（DD-07）
 ```
 
 ### Engine の出力
@@ -157,7 +167,16 @@ export interface ContactView {
   cspSources: { formAction: string[]; frameSrc: string[] };   // DD-16
 }
 export interface ChannelLinkView { label: string; url: string; icon: string }
-export interface ArticleFeedView { articles: Article[] }   // 将来
+export interface ArticleCard extends Article { href: string }            // href はベースパスつき
+export interface ArticleFeedView { articles: ArticleCard[] }
+export interface NewsIndexView { meta: PageMeta; articles: ArticleCard[]; feedHref: string }
+export interface NewsArticleView {
+  meta: PageMeta; article: ArticleRecord; author: { name: string; avatar: ImageRef };
+  share: ShareLink[];            // リンクのコピーは Client が足す（コピーする URL は meta.canonical）
+  follow: ChannelLinkView[]; related: ArticleCard[];
+}
+export interface NewsFeedView { title: string; description: string; siteUrl: string; feedUrl: string; items: NewsFeedItem[] }
+export interface NewsFeedItem { title: string; link: string; date: string; description: string; categories: string[] }
 export interface AnalyticsTag { provider: string; snippet: string; scriptOrigins: string[] }   // scriptOrigins は DD-16
 ```
 
@@ -176,12 +195,17 @@ export interface ShowcaseManager {
 export interface EngagementManager {
   getChannelLinks(): Promise<ChannelLinkView[]>;
   getContactView(): Promise<ContactView>;
-  getArticleFeedView(limit: number): Promise<ArticleFeedView>;   // 将来
+  getArticleFeedView(limit: number): Promise<ArticleFeedView>;
+  getNewsIndexView(): Promise<NewsIndexView>;
+  listArticleSlugs(): Promise<string[]>;
+  getNewsArticleView(slug: string): Promise<NewsArticleView>;
+  getNewsFeed(): Promise<NewsFeedView>;
 }
 export interface PricingEngine { presentPrice(price: PriceSpec, policy: PricePolicy, note?: string): PriceDisplay }
 export interface CurationEngine {
   pickFeatured<T extends Curatable>(items: T[], rule: CurationRule): T[];
   arrange<T extends Curatable>(items: T[], rule: CurationRule): T[];
+  pickRelated<T extends Taggable>(items: T[], base: Taggable, limit: number): T[];
 }
 export interface CtaEngine { decideForService(service: ServiceRecord): Promise<CallToAction> }
 export interface ContentAccess {
@@ -196,8 +220,12 @@ export interface InquiryAccess { getInquiryChannel(): Promise<InquiryChannel> }
 export interface ChannelAccess {
   listChannels(): Promise<Channel[]>;
   findChannel(id: string): Promise<Channel | undefined>;
+  listShareLinks(page: { url: string; title: string }): Promise<ShareLink[]>;
 }
-export interface ArticleAccess { listRecentArticles(limit: number): Promise<Article[]> }  // 将来
+export interface ArticleAccess {
+  listRecentArticles(limit?: number): Promise<Article[]>;   // 新しい順。limit を省くとすべて
+  findArticle(slug: string): Promise<ArticleRecord | undefined>;
+}
 export interface SiteConfig { siteUrl: string; base: string; locale: "ja" }
 export interface PageMetaInput {
   siteName: string; title?: string;   // title を省くとサイト名だけ（トップ用）
@@ -299,6 +327,12 @@ featured: true
   1. `featured: true` の項目を `arrange` で並べる。
   2. 先頭から `rule.featuredLimit` 件を返す。
   3. `featured: true` が `featuredLimit` に満たなければ、満たないまま返す（勝手に補わない）。
+- `pickRelated(items, base, limit)`（記事の関連記事。FR-16）
+  1. `base` 自身（`id` が同じもの）を除く。
+  2. 各項目について、`base` と共通するタグの数を数える。
+  3. 共通するタグが 1 つ以上の項目を、タグの数の降順 → `date` の降順 → `id` の昇順で並べる。
+  4. `limit` 件に満たなければ、残り（共通するタグがない項目）を `date` の降順 → `id` の昇順で後ろに足す（`pickFeatured` と違い、補う。ユーザーと決めた）。
+  5. 先頭から `limit` 件を返す。`date` がないものは、`date` のあるものより後ろに回す。
 - 入力の配列は変更しない（新しい配列を返す）。
 
 ## 3.5 DD-05 導線の決め方（CtaEngine）
@@ -353,18 +387,74 @@ label: X の DM で問い合わせる
 - `listChannels` は `order` の昇順で返す。
 - `icon` の名前と SVG アイコンの対応は Client（CMP-C01）が持つ。知らない名前のときは汎用のリンクアイコンを出す。
 
-## 3.8 DD-08 記事の取得（ArticleAccess・将来）
+### 共有先（`listShareLinks`）
 
-- 初期の実装は `createNoArticleAccess()`（常に空の一覧。VOL-06 の「記事の出所なし」の状態）。
-- 実装の候補：`NoteRssArticleAccess`（ビルド時に `https://note.com/{id}/rss` を取得して解析）、`LocalBlogArticleAccess`（`src/content/posts/`）、両方を合わせるもの。
-- 取得のタイムアウトは 10 秒。失敗したら空の配列を返し、ビルドログに警告を出す（ビルドは失敗させない。DD-14）。
-- どの実装を使うかは `compose.ts` だけで切り替える。
+`src/content/settings/share-targets.yaml`（RES-03）。`url` は共有用 URL の形で、`{url}` と `{title}` を、共有するページの絶対 URL と見出しに置き換える。
+
+```yaml
+- { id: x,       label: X,                  icon: x,       url: "https://x.com/intent/post?text={title}&url={url}",                  order: 10 }
+- { id: threads, label: Threads,            icon: threads, url: "https://www.threads.com/intent/post?text={title}&url={url}",        order: 20 }
+- { id: hatena,  label: はてなブックマーク, icon: hatena,  url: "https://b.hatena.ne.jp/add?mode=confirm&url={url}&title={title}", order: 30 }
+```
+
+- 置き換える値は `encodeURIComponent` でエンコードする（見出しに `&` や `#` があっても URL が壊れないように）。
+- `id` は重複禁止。`url` は `https://` で始まり、`{url}` を含むこと。違反があればビルド失敗（`InvalidChannelConfigError`）。
+- `order` の昇順で返す。
+- 「リンクのコピー」は外部の共有先ではないので、ここには書かない。Client が足す（DD-11）。
+
+## 3.8 DD-08 ニュースの記事（ArticleAccess）
+
+初期の実装は `createLocalArticleAccess(source)`（`resource-access/article-access/`）。記事は `src/content/news/*.md`（RES-04）に Markdown + frontmatter で書き、Astro の Content Collections（`news`）で読む。構成は ContentAccess と同じく、契約への変換（`index.ts`）と Astro からの読み込み（`astro-source.ts`）に分ける。
+
+```markdown
+---
+title: "ホームページにニュース欄を作りました"
+summary: "近況や新しい制作物のお知らせを、ここに書いていきます。"
+category: notice
+date: 2026-10-17
+tags: ["このサイト"]
+image: { src: /images/news/news-section.webp, alt: "……", caption: "……" }   # 任意
+---
+本文（Markdown）
+```
+
+### 検証規則
+
+| 項目 | 規則 |
+| --- | --- |
+| slug | ファイル名から作る。`^[a-z0-9]+(-[a-z0-9]+)*$`（DD-02 と同じ）。公開後は変えない |
+| title | 1〜60 字（ニュースの見出しはサービスより長くなるため） |
+| summary | 1〜120 字（description、OGP、RSS に使う） |
+| category | 必須。`notice` / `work` / `essay` のどれか |
+| date / updated | `date` は必須。`updated` は任意で、`date` より前の日付は不可 |
+| tags | 0〜5 個。1 つ 1〜20 字。重複は不可 |
+| image | 任意。`src` は `/images/news/` の下の `.webp` / `.jpg` / `.png`。`alt` は必須（NFR-03）。`caption` は任意。ファイルが `public/` にないときはビルド失敗 |
+| draft | `true` のものはどの操作も返さない（ページも RSS も作らない） |
+
+### 操作
+
+- `listRecentArticles(limit?)`：`date` の降順 → `id` の昇順。`limit` があれば先頭から `limit` 件。
+- `findArticle(slug)`：本文（ビルド時に変換した HTML。`TrustedHtml`）つき。
+- 結果はビルドの間だけメモ化してよい（DD-09）。
+
+### 将来（VOL-06）
+
+- note の記事も並べるときは、`NoteRssArticleAccess`（ビルド時に `https://note.com/{id}/rss` を取得）と、自サイトの記事を合わせる実装を足し、`compose.ts` で切り替える。note の記事には本文がないので、`Article` に外部の URL を持たせる拡張が要る（そのときに契約を見直す）。
+- 取得のタイムアウトは 10 秒。失敗したら note の記事を出さず、ビルドログに警告を出す（ビルドは失敗させない。DD-14）。
 
 ## 3.9 DD-09 Manager の実装方針
 
 - Manager は手順（どれを呼び、どう組み合わせるか）だけを持つ。価格の計算や並べ替えのような判断は Engine に任せる。
 - `getServiceDetailView(slug)` は、該当するサービスがなければ `ServiceNotFoundError` を投げる。`listServiceSlugs` と同じデータを使うので、通常は起きない。
 - `getContactView` の `serviceOptions` は、CtaEngine の判定が `inquiry` になるサービスだけにする（02b §2b.2）。
+- ニュースの操作（EngagementManager）：
+  - 記事カードの `href` は `/news/{slug}/` にベースパスを付けたもの（CMP-U01）。
+  - `getNewsArticleView(slug)` は、該当する記事がなければ `ArticleNotFoundError` を投げる。
+  - 関連記事は、公開中の全記事から `CurationEngine.pickRelated(articles, article, 3)` で選ぶ。
+  - 共有リンクは `ChannelAccess.listShareLinks({ url: meta.canonical, title: article.title })`。フォローのリンクは `listChannels()` をフッターと同じ形（`ChannelLinkView`）にしたもの。
+  - meta：title は記事の見出し、description は要約、`type: "article"`、OGP 画像は記事の画像（なければ既定）。
+  - 筆者は運営者のプロフィール（表示名とアイコン）。
+  - `getNewsFeed()` の項目は新しい順のすべての記事。リンクは絶対 URL（CMP-U01 の `toAbsoluteUrl`）。categories には分類のラベルではなくタグを入れる。
 - ビルド中に同じリソースを何度も読まないよう、ResourceAccess の結果をビルドの間だけメモ化してよい。メモ化は ResourceAccess の内部で行い、Manager は気にしない。
 
 ## 3.10 DD-10 Utility
@@ -372,7 +462,7 @@ label: X の DM で問い合わせる
 | 構成要素 | 実装 |
 | --- | --- |
 | CMP-U01 Config | `astro.config.mjs` の `site`（`https://fukugyononuko.github.io`）と `base`（`/`）を `import.meta.env` から読み、`{ siteUrl, base, locale: "ja" }` を返す |
-| CMP-U02 Seo | `buildPageMeta({ title, description, path, ogImage?, type? })`。title は `"{ページ名} | {サイト名}"`（トップはサイト名のみ）。canonical と OGP 画像は Config から絶対 URL にする。OGP 画像の既定は `/og-default.jpg`。サイト名は Manager が `siteName` として渡す（Utility は ResourceAccess を呼ばないため。R7） |
+| CMP-U02 Seo | `buildPageMeta({ title, description, path, ogImage?, type? })`。記事のページは `ogImage` に記事の画像、`type` に `article` を渡す。title は `"{ページ名} | {サイト名}"`（トップはサイト名のみ）。canonical と OGP 画像は Config から絶対 URL にする。OGP 画像の既定は `/og-default.jpg`。サイト名は Manager が `siteName` として渡す（Utility は ResourceAccess を呼ばないため。R7） |
 | CMP-U03 Analytics | `src/content/settings/analytics.yaml` があれば読み、`{ provider, snippet }` を返す。なければ `null`（OPEN-06 が決まるまでは置かない） |
 
 ## 3.11 DD-11 Client（ページとコンポーネント）
@@ -386,13 +476,25 @@ label: X の DM で問い合わせる
 | SCR-04 | `src/pages/services/[slug].astro`（`getStaticPaths` で `listServiceSlugs` を使う） | `getServiceDetailView` |
 | SCR-05 | `src/pages/contact.astro`、`src/components/inquiry/{FormPost,Embed,Link}.astro`、`src/scripts/contact-prefill.ts` | `getContactView` |
 | SCR-06 | `src/pages/404.astro`（canonical と OGP を出さず `noindex`） | `getLayoutView` だけ |
+| SCR-07 | `src/pages/news/index.astro`、`src/components/ArticleCard.astro` | `getNewsIndexView` |
+| SCR-08 | `src/pages/news/[slug].astro`（`getStaticPaths` で `listArticleSlugs` を使う）、`src/components/{ArticleCard,ShareButtons}.astro`、`src/scripts/copy-link.ts` | `getNewsArticleView` |
+| RSS | `src/pages/news/rss.xml.ts`（Astro のエンドポイント） | `getNewsFeed` |
 
 - スタイルは `src/styles/tokens.css`（色・余白・文字の CSS 変数）、`src/styles/global.css`（全体の基本）、各コンポーネントの scoped CSS。ダークモードは `prefers-color-scheme` で CSS 変数を切り替える（NFR-05）。値と部品の一覧は 02a §2a.7。
-- 閲覧時の JavaScript は `contact-prefill.ts` だけ（NFR-10）。`?service=` の値が `serviceOptions` にあるときだけ選択欄に反映する。値を HTML として書き込まない（NFR-15）。
+- 閲覧時の JavaScript は `contact-prefill.ts` と `copy-link.ts` だけ（NFR-10）。`?service=` の値が `serviceOptions` にあるときだけ選択欄に反映する。値を HTML として書き込まない（NFR-15）。
 - 外部リンクは共通コンポーネント `ExternalLink.astro` だけで出力し、`target="_blank" rel="noopener noreferrer"` を必ず付ける（NFR-16）。
 - Markdown の本文は ContentAccess がビルド時に HTML に変換して渡す（`TrustedHtml`）。Client は `set:html` を `TrustedHtml` にだけ使う（NFR-15）。
 - 制作例の種類ラベルは Client が持つ（`client` → 受託、`personal` → 個人制作、`sample` → サンプル）。ラベルは省略せず、すべての制作例に表示する（FR-03）。
 - 制作例が 0 件ならその欄を出さない。サービスが 0 件なら「準備中です」と問い合わせへの誘導を出す（FR-03、FR-04）。
+- ニュース（FR-11、FR-15〜17）：
+  - 分類のラベルは Client が持つ（`notice` → お知らせ、`work` → 制作、`essay` → 読み物）。
+  - 日付は「2026年10月17日」の形で、`<time datetime="2026-10-17">` に入れる。
+  - 記事カードの画像は、記事の画像がなければ既定の画像（`/og-default.jpg`）を出す。カードの画像は `alt=""`（見出しがリンクの文字になるため、読み上げを重ねない）、`loading="lazy"`。カード全体を 1 つのリンクにする。
+  - 記事のページの画像は `alt` を記事のものにし、`fetchpriority="high"`。画像の枠は 16:9（`aspect-ratio`、`object-fit: cover`）にして、読み込みでレイアウトがずれないようにする。画像がない記事では枠ごと出さない。
+  - 共有ボタン（`ShareButtons.astro`）は共有リンクを `ExternalLink.astro` で出す。リンクの読み上げは「{ラベル}で共有」。アイコンの対応は `Icon.astro`（`hatena`、`copy` を足す）。
+  - 「リンクをコピー」は `<button hidden data-copy-url="…">` で出し、`copy-link.ts` が `hidden` を外す（JavaScript が無効なら表示されない。NFR-10）。押すと `navigator.clipboard.writeText` で URL をコピーし、ボタンの横の `role="status"` に「コピーしました」と出す。クリップボードが使えないときは「コピーできませんでした」と出す。値を HTML として書き込まない（`textContent` を使う。NFR-15）。
+  - RSS は `rss.xml.ts` が XML を組み立てる。文字列は `&`、`<`、`>`、`"`、`'` をエスケープする。依存は増やさない（`@astrojs/rss` は zod と XML パーサーへの依存が増えるため使わない）。
+  - 共通レイアウトの `<head>` に `<link rel="alternate" type="application/rss+xml" href="/news/rss.xml">` を置く。
 
 ## 3.12 DD-12 依存規則の検査
 
@@ -440,7 +542,10 @@ label: X の DM で問い合わせる
 | チャネル設定の不正 | CMP-A03 | ビルド失敗 |
 | `UnknownChannelError` | CMP-E03 | ビルド失敗。サービスの slug と channelId を表示する |
 | `ServiceNotFoundError` | CMP-M01 | ビルド失敗 |
-| 記事の取得失敗（将来） | CMP-A04 | 警告だけ。空の一覧で続ける |
+| 記事のスキーマ違反、画像のファイルがない | CMP-A04（Astro の Content Collections と `astro-source.ts`） | ビルド失敗。ファイル名と項目を表示する（FR-14） |
+| `ArticleNotFoundError` | CMP-M02 | ビルド失敗 |
+| 共有先の設定の不正 | CMP-A03 | ビルド失敗（`InvalidChannelConfigError`） |
+| 外部からの記事の取得失敗（将来） | CMP-A04 | 警告だけ。外部の記事を出さずに続ける |
 | 依存規則違反 | DD-12 | CI 失敗。公開しない（NFR-09） |
 
 公開中のサイトには前回成功したビルドが残るので、失敗しても訪問者への影響はない。
@@ -456,7 +561,7 @@ label: X の DM で問い合わせる
 ├── assets/fonts/                         見出しフォントの元（Zen Maru Gothic Bold、OFL）。ビルド時にサブセット化する
 ├── astro.config.mjs                      CMP-U01 の値の元
 ├── docs/                                 設計ドキュメント
-├── public/                               favicon、og-default.png、robots.txt
+├── public/                               favicon、og-default.jpg、robots.txt、images/（images/news/ は記事の画像。RES-04）
 ├── scripts/                              check-astro-imports.mjs（DD-12）、check-workflows.mjs（TC-N10）、check-image-metadata.mjs（TC-N15）、check-privacy.mjs（TC-N06）、lighthouse.mjs（TC-N01）、subset-heading-font.mjs（見出しフォントのサブセット化）
 ├── src/
 │   ├── content.config.ts                 DD-02（CMP-A01 の内部）
@@ -465,11 +570,12 @@ label: X の DM で問い合わせる
 │   │   ├── skills.yaml
 │   │   ├── works/*.md
 │   │   ├── services/*.md
-│   │   └── settings/{presentation,inquiry,channels}.yaml
+│   │   ├── news/*.md                     RES-04（DD-08）
+│   │   └── settings/{presentation,inquiry,channels,share-targets}.yaml
 │   ├── pages/                            CMP-C01
 │   ├── layouts/                          CMP-C01
 │   ├── components/                       CMP-C01
-│   ├── scripts/contact-prefill.ts        CMP-C01（閲覧時）
+│   ├── scripts/{contact-prefill,copy-link}.ts  CMP-C01（閲覧時）
 │   ├── styles/                           CMP-C01
 │   └── system/
 │       ├── contracts/                    DD-01
@@ -484,7 +590,7 @@ label: X の DM で問い合わせる
 │       │   ├── content-access/           CMP-A01（index.ts、schemas.ts、astro-source.ts）
 │       │   ├── inquiry-access/           CMP-A02（index.ts、schema.ts、astro-source.ts）
 │       │   ├── channel-access/           CMP-A03（index.ts、schema.ts、astro-source.ts）
-│       │   └── article-access/           CMP-A04（初期は「記事なし」の実装）
+│       │   └── article-access/           CMP-A04（index.ts、schema.ts、astro-source.ts）
 │       ├── utilities/
 │       │   ├── config.ts                 CMP-U01
 │       │   ├── seo.ts                    CMP-U02
@@ -516,6 +622,7 @@ label: X の DM で問い合わせる
 | 秘密情報の誤コミット | トークンなどの漏えい | 秘密情報を置かない設計（問い合わせ先の ID は公開されても困らない値だけ）、secret scanning と push protection | NFR-14 |
 | スクリプトの注入（XSS） | 訪問者のブラウザで不正な処理が動く | 外部データはエスケープして出力、CSP | NFR-15 |
 | 外部リンクや埋め込みの悪用 | 遷移先からの元ページの操作、リファラーからの情報漏れ | `noopener noreferrer`、iframe の `sandbox`、外部スクリプトの許可リスト | NFR-16 |
+| 共有ボタンからの追跡 | 共有先のスクリプトが訪問者を追跡する、CSP を緩める必要が出る | 共有先のスクリプトやボタンの画像を読み込まず、共有用 URL へのリンクだけにする（EIF-06）。CSP は変えない | NFR-15, NFR-16 |
 | 問い合わせのスパム、内容の漏えい | 受付先があふれる、個人情報の漏えい | HTTPS、受付先のスパム対策＋ハニーポット欄、サイトに保存しない | NFR-17 |
 | 通信の盗聴・改ざん | 表示内容のすり替え | HTTPS の強制 | NFR-18 |
 | 画像からの個人情報の漏えい | 撮影場所などが分かる | 公開前に EXIF を削除 | NFR-06 |
