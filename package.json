@@ -28,13 +28,13 @@
   "devDependencies": {
     "@astrojs/check": "^0.9.10",
     "@axe-core/playwright": "^4.13.0",
-    "@playwright/test": "^1.64.0",
+    "@playwright/test": "^1.64.1",
     "@types/js-yaml": "^4.0.9",
-    "dependency-cruiser": "^18.5.0",
+    "dependency-cruiser": "^18.6.0",
     "lighthouse": "^13.5.0",
     "subset-font": "^2.9.0",
     "typescript": "^6.0.3",
-    "vitest": "^5.0.3"
+    "vitest": "^5.0.4"
   },
   "allowScripts": {
     "fsevents": false
