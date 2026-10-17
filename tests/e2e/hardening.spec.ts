@@ -2,7 +2,7 @@
 import AxeBuilder from "@axe-core/playwright";
 import { expect, test } from "@playwright/test";
 
-const pages = ["/", "/about/", "/services/", "/services/homepage-mock/", "/contact/", "/no-such-page/"];
+const pages = ["/", "/about/", "/services/", "/services/homepage-mock/", "/news/", "/news/news-section/", "/contact/", "/no-such-page/"];
 
 test.describe("TC-N02：axe で重大な違反がない", () => {
   for (const path of pages) {

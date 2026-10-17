@@ -8,7 +8,7 @@ flowchart LR
   O(["運営者"]) -->|編集・push| GH["GitHub リポジトリ"]
   GH -->|GitHub Actions でビルド・デプロイ| SITE
   SITE -->|リンク| NOTE["note<br/>（収益化の主軸の予定）"]
-  SITE -->|リンク| SNS["X / GitHub など"]
+  SITE -->|リンク・共有| SNS["X / GitHub など"]
   SITE -->|送信・遷移| INQ["問い合わせ手段<br/>（OPEN-01）"]
 ```
 
@@ -33,14 +33,14 @@ The Method の 2 つの軸で洗い出した。
 | VOL-01 | 問い合わせ手段 | Google フォーム → Formspree → DM のみ、など | 時間 | CMP-A02 InquiryAccess |
 | VOL-02 | 取引の場と、その場への導線を決めるルール | 問い合わせのみ → note でテンプレートなどを販売 → 他の販売サイトを追加 | 時間 | CMP-E03 CtaEngine |
 | VOL-03 | 価格の見せ方 | 明記 → 「〜円から」→ 要見積もり。サービスによって変える | 時間、利用者 | CMP-E01 PricingEngine |
-| VOL-04 | 注目項目の選び方と並び順 | 手動で指定 → 新しい順 → 種類ごとに 1 件ずつ | 時間 | CMP-E02 CurationEngine |
+| VOL-04 | 注目項目・関連記事の選び方と並び順 | 手動で指定 → 新しい順 → 種類ごとに 1 件ずつ。関連記事を同じタグ → 同じ分類で選ぶ | 時間 | CMP-E02 CurationEngine |
 | VOL-05 | コンテンツの保管場所と形式 | リポジトリ内の Markdown / YAML → ヘッドレス CMS など | 時間 | CMP-A01 ContentAccess |
-| VOL-06 | 記事の出所 | なし → note の RSS → 自サイトのブログ → その両方 | 時間 | CMP-A04 ArticleAccess |
-| VOL-07 | 外部チャネルの種類と URL | note・X・GitHub → チャネルの追加・廃止、アカウントの変更 | 時間 | CMP-A03 ChannelAccess |
+| VOL-06 | 記事の出所 | なし → 自サイトのニュース（現在）→ note の RSS も合わせる → CMS など | 時間 | CMP-A04 ArticleAccess |
+| VOL-07 | 外部チャネルと共有先の種類と URL | note・X・GitHub → チャネルの追加・廃止、アカウントの変更。記事の共有先（X・Threads・はてなブックマーク）の追加・廃止、共有用 URL の形の変更 | 時間 | CMP-A03 ChannelAccess |
 | VOL-08 | 公開先とベース URL | GitHub Pages → 独自ドメイン → 別のホスティング | 時間 | CMP-U01 Config |
 | VOL-09 | アクセス解析 | なし → Cloudflare Web Analytics → 別のサービス | 時間 | CMP-U03 Analytics |
 | VOL-10 | 見た目（デザイン、テーマ、レイアウト） | 配色やフォントの変更、ダーク / ライト、画面幅による違い | 時間、利用者 | CMP-C01 Pages（Client 層） |
-| VOL-11 | ユースケースの手順（何をどの順に見せ、どこへつなぐか） | トップに記事一覧を足す、詳細ページから直接 note へ送る | 時間 | CMP-M01 ShowcaseManager / CMP-M02 EngagementManager |
+| VOL-11 | ユースケースの手順（何をどの順に見せ、どこへつなぐか） | トップに記事一覧を足す、詳細ページから直接 note へ送る、記事のページにサービスへの誘導を足す | 時間 | CMP-M01 ShowcaseManager / CMP-M02 EngagementManager |
 
 ### サービスの中身は「変動性」ではなく「データ」
 
@@ -77,13 +77,13 @@ flowchart TB
     A01["CMP-A01 ContentAccess"]
     A02["CMP-A02 InquiryAccess"]
     A03["CMP-A03 ChannelAccess"]
-    A04["CMP-A04 ArticleAccess（将来）"]
+    A04["CMP-A04 ArticleAccess"]
   end
   subgraph RS["Resources"]
     R01[("RES-01 コンテンツファイル")]
     R02[("RES-02 問い合わせ設定")]
     R03[("RES-03 チャネル設定")]
-    R04[("RES-04 note RSS など（将来）")]
+    R04[("RES-04 ニュースの記事")]
   end
   subgraph UT["Utilities"]
     U01["CMP-U01 Config"]
@@ -95,6 +95,7 @@ flowchart TB
   M01 --> E01
   M01 --> E02
   M01 --> E03
+  M02 --> E02
   M02 --> E03
   M01 --> A01
   M02 --> A02
@@ -117,7 +118,9 @@ Manager は、ユースケースの「手順」の変動性を閉じ込める。
 | Manager | 閉じ込める手順 | 担当するユースケース |
 | --- | --- | --- |
 | CMP-M01 ShowcaseManager | **見せる**手順：運営者とサービスを、どの情報をどう組み合わせて見せるか | UC-01, UC-02 |
-| CMP-M02 EngagementManager | **つなぐ**手順：訪問者を、問い合わせや外部の場にどうつなぐか | UC-03, UC-04 |
+| CMP-M02 EngagementManager | **つなぐ**手順：訪問者を、問い合わせや外部の場にどうつなぐか | UC-03, UC-04, UC-06 |
+
+UC-06（ニュースを読み、広める）は EngagementManager に置く。ニュースはこのサイトでは、運営者の近況を伝えて、共有・フォロー・note への導線をつくるためのもの（BR-03）で、記事のページの手順は「読んだ人を外部の場にどうつなぐか」（共有先、フォローするチャネル、関連記事）の組み立てが中心になるため。記事一覧の操作（`getArticleFeedView`）も、設計の当初から EngagementManager に置いていた。
 
 UC-05（運営者による更新と公開）は、Manager を通さない。運営者の環境（CMP-C02）と CI パイプライン（DD-13）の手順で実現し、スキーマの強制は ContentAccess が担う（FR-14）。
 
@@ -133,8 +136,8 @@ CtaEngine は 2 つの Manager の両方から呼ばれる。サービス詳細�
 | --- | --- | --- | --- |
 | RES-01 | コンテンツファイル | `src/content/` の Markdown / YAML（プロフィール、スキル、制作例、サービス、表示設定） | 初期 |
 | RES-02 | 問い合わせ設定 | `src/content/settings/inquiry.yaml`（手段の種類と接続先） | 初期 |
-| RES-03 | チャネル設定 | `src/content/settings/channels.yaml`（外部チャネルの一覧） | 初期 |
-| RES-04 | 記事の配信元 | note の RSS など | 将来 |
+| RES-03 | チャネル設定 | `src/content/settings/channels.yaml`（外部チャネルの一覧）、`src/content/settings/share-targets.yaml`（記事の共有先と共有用 URL の形） | 初期 |
+| RES-04 | ニュースの記事 | `src/content/news/*.md`（Markdown + frontmatter）と、記事の画像 `public/images/news/`。将来は note の RSS なども（VOL-06） | 初期 |
 | RES-05 | 問い合わせの受付先 | 外部のフォームサービスなど（EIF-01、OPEN-01） | 初期 |
 | RES-06 | ホスティングと CI | GitHub Pages / GitHub Actions（EIF-03） | 初期 |
 

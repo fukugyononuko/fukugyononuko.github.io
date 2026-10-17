@@ -56,7 +56,7 @@ test("TC-S02：トップ → サービス一覧 → 詳細 → 問い合わせ�
 });
 
 test("TC-S04：全画面のフッターに外部チャネルのリンクがある", async ({ page }) => {
-  for (const path of ["/", "/about/", "/services/", "/contact/"]) {
+  for (const path of ["/", "/about/", "/services/", "/news/", "/news/news-section/", "/contact/"]) {
     await page.goto(path);
     const links = page.locator("footer .channels a");
     expect(await links.count()).toBeGreaterThan(0);
@@ -88,7 +88,7 @@ test("TC-S08：サイト内リンクにリンク切れがない", async ({ page,
       if (!seen.has(target)) queue.push(target);
     }
   }
-  for (const asset of ["/sitemap-index.xml", "/robots.txt", "/og-default.jpg", "/favicon.png"]) {
+  for (const asset of ["/sitemap-index.xml", "/robots.txt", "/og-default.jpg", "/favicon.png", "/news/rss.xml"]) {
     expect((await request.get(asset)).status(), asset).toBe(200);
   }
 });
@@ -127,7 +127,7 @@ test("TC-N12：?service= に HTML を含む値を与えても解釈されない"
 });
 
 test("TC-N13：外部リンクには noopener noreferrer が付き、iframe には sandbox が付く", async ({ page }) => {
-  for (const path of ["/", "/about/", "/services/homepage-mock/", "/contact/"]) {
+  for (const path of ["/", "/about/", "/services/homepage-mock/", "/news/news-section/", "/contact/"]) {
     await page.goto(path);
     const external = page.locator("a[href^='http']");
     const n = await external.count();
@@ -143,7 +143,7 @@ test("TC-N13：外部リンクには noopener noreferrer が付き、iframe に�
 
 test("TC-N03：全画面に固有の title・description・canonical・OGP がある", async ({ page }) => {
   const titles = new Set<string>();
-  for (const path of ["/", "/about/", "/services/", "/services/homepage-mock/", "/contact/"]) {
+  for (const path of ["/", "/about/", "/services/", "/services/homepage-mock/", "/news/", "/news/news-section/", "/contact/"]) {
     await page.goto(path);
     const title = await page.title();
     expect(titles.has(title), `${path} の title が重複`).toBe(false);

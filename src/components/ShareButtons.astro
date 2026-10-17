@@ -1,0 +1,86 @@
+---
+// CMP-C01 記事の共有（SCR-08、FR-15、EIF-06、DD-11）
+// 共有先へは共有用 URL へのリンクだけを出す（スクリプトは読み込まない。NFR-16）。
+// 「リンクをコピー」は JavaScript が有効なときだけ表示する（src/scripts/copy-link.ts、NFR-10）。
+import type { ShareLink } from "../system/contracts";
+import ExternalLink from "./ExternalLink.astro";
+import Icon from "./Icon.astro";
+
+interface Props {
+  links: ShareLink[];
+  /** コピーする URL（記事の canonical） */
+  url: string;
+  /** 1 ページに 2 つ置くので、見出しの id を分ける */
+  position: "top" | "bottom";
+}
+const { links, url, position } = Astro.props;
+const labelId = `share-${position}`;
+---
+<div class="share" data-share>
+  <p class="label" id={labelId}>共有</p>
+  <ul aria-labelledby={labelId}>
+    {links.map((l) => (
+      <li>
+        <ExternalLink class="button" href={l.url} data-share-target={l.id}>
+          <Icon name={l.icon} /><span class="visually-hidden">{l.label}で共有</span>
+        </ExternalLink>
+      </li>
+    ))}
+    <li>
+      <button type="button" class="button" data-copy-url={url} hidden>
+        <Icon name="copy" /><span class="visually-hidden">リンクをコピー</span>
+      </button>
+    </li>
+  </ul>
+  <p class="status" role="status" data-copy-status></p>
+</div>
+
+<style>
+  .share {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: var(--space-2) var(--space-3);
+  }
+  .label {
+    margin: 0;
+    color: var(--color-text-muted);
+    font-size: 0.875rem;
+    font-weight: 700;
+  }
+  ul {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-2);
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+  .button {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 2.75rem;
+    height: 2.75rem;
+    padding: 0;
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-full);
+    background: var(--color-surface);
+    color: var(--color-text);
+    font: inherit;
+    cursor: pointer;
+    text-decoration: none;
+  }
+  .button:hover {
+    background: var(--color-sea-soft);
+    color: var(--color-text);
+  }
+  .status {
+    margin: 0;
+    color: var(--color-grass);
+    font-size: 0.875rem;
+  }
+  .status:empty {
+    display: none;
+  }
+</style>

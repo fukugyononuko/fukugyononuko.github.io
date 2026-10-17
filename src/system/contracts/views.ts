@@ -1,6 +1,8 @@
 // DD-01 契約：Manager が Client に返す View
 import type { CallToAction, PriceDisplay } from "./engine-results";
-import type { Article, ImageRef, InquiryChannel, OperatorProfile, TrustedHtml, Skill, SkillGroup, Work } from "./records";
+import type {
+  Article, ArticleRecord, ImageRef, InquiryChannel, OperatorProfile, ShareLink, TrustedHtml, Skill, SkillGroup, Work,
+} from "./records";
 
 export interface PageMeta {
   title: string;
@@ -79,7 +81,55 @@ export interface ChannelLinkView {
   icon: string;
 }
 
-/** 将来（FR-11） */
+/** 記事カード（SCR-01、SCR-07、SCR-08 の関連記事） */
+export interface ArticleCard extends Article {
+  /** 記事のページのパス（ベースパスつき） */
+  href: string;
+}
+
+/** トップの最新のニュース（FR-11） */
 export interface ArticleFeedView {
-  articles: Article[];
+  articles: ArticleCard[];
+}
+
+/** SCR-07 */
+export interface NewsIndexView {
+  meta: PageMeta;
+  articles: ArticleCard[];
+  /** RSS のパス（ベースパスつき） */
+  feedHref: string;
+}
+
+/** SCR-08 */
+export interface NewsArticleView {
+  meta: PageMeta;
+  article: ArticleRecord;
+  author: { name: string; avatar: ImageRef };
+  /** FR-15 共有（リンクのコピーは Client が足す。コピーする URL は meta.canonical） */
+  share: ShareLink[];
+  /** FR-15 フォロー */
+  follow: ChannelLinkView[];
+  /** FR-16 */
+  related: ArticleCard[];
+}
+
+/** /news/rss.xml（FR-17） */
+export interface NewsFeedView {
+  title: string;
+  description: string;
+  /** サイトのトップの絶対 URL */
+  siteUrl: string;
+  /** フィード自身の絶対 URL */
+  feedUrl: string;
+  items: NewsFeedItem[];
+}
+
+export interface NewsFeedItem {
+  title: string;
+  /** 記事の絶対 URL */
+  link: string;
+  /** 公開日（ISO 8601） */
+  date: string;
+  description: string;
+  categories: string[];
 }

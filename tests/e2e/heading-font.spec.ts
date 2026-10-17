@@ -2,7 +2,7 @@
 // 抜けた文字は、別のフォントで表示されて見た目が崩れるため。
 import { expect, test } from "@playwright/test";
 
-const pages = ["/", "/about/", "/services/", "/services/homepage-mock/", "/contact/", "/no-such-page/"];
+const pages = ["/", "/about/", "/services/", "/services/homepage-mock/", "/news/", "/news/news-section/", "/contact/", "/no-such-page/"];
 
 test.describe("見出しフォントのサブセットに、使っている文字がすべて入っている", () => {
   for (const path of pages) {

@@ -20,17 +20,18 @@
 | TC-U03 | CMP-E03 CtaEngine | `inquiry` の href とラベル、`channel` で URL を解決すること、ラベルの上書き、存在しないチャネルで `UnknownChannelError` | DD-05 |
 | TC-U04 | CMP-A01 ContentAccess | 正しいフィクスチャを契約の型に変換すること、`draft` を除くこと、DD-02 の検証規則に違反するフィクスチャ（制作例の `kind` の欠落を含む）で失敗すること | DD-02 |
 | TC-U05 | CMP-A02 InquiryAccess | 3 種類の設定を読めること、`https://` 以外や必須項目の欠落で `InvalidInquiryConfigError` | DD-06 |
-| TC-U06 | CMP-A03 ChannelAccess | `order` の順、`findChannel` の有無、`id` の重複や不正な URL で失敗すること | DD-07 |
-| TC-U07 | CMP-A04 ArticleAccess（将来） | RSS の解析、新しい順、`limit`、取得失敗で空の配列と警告 | DD-08 |
+| TC-U06 | CMP-A03 ChannelAccess | `order` の順、`findChannel` の有無、`id` の重複や不正な URL で失敗すること。`listShareLinks` が `{url}`・`{title}` をエンコードして置き換え（`&`・`#`・日本語を含む見出し）、`order` の順に返すこと。共有先の `id` の重複、`https://` 以外、`{url}` のない形で失敗すること | DD-07 |
+| TC-U07 | CMP-A04 ArticleAccess | 正しいフィクスチャを契約の型に変換すること、新しい順（同じ日付は `id` の順）、`limit`、`draft` を除くこと、`findArticle` の有無と本文。DD-08 の検証規則（slug、文字数、分類の欠落、`updated` が `date` より前、タグの重複、画像の `alt` の欠落と置き場所）に違反するフィクスチャで失敗すること | DD-08 |
 | TC-U08 | CMP-U02 Seo | title の形式（トップとそれ以外）、canonical と OGP 画像が絶対 URL になること | DD-10 |
 | TC-U09 | CMP-U01 Config / CMP-U03 Analytics | ベース URL を設定から読むこと、解析の設定がないときに `null` | DD-10 |
+| TC-U10 | CMP-E02 CurationEngine（`pickRelated`） | 自分自身を除くこと、共通するタグの数の順、同数なら新しい順 → `id` の順、足りないときに新しい記事で補うこと、`limit` で切ること、記事が自分だけのときに空、入力を変更しないこと | DD-04 |
 
 ## 4.3 結合テスト（TC-I）
 
 | ID | 対象 | 確認すること | 設計 |
 | --- | --- | --- | --- |
 | TC-I01 | CMP-M01 ShowcaseManager | 偽の ContentAccess / ChannelAccess を使い、各 View が CC-01〜CC-03 のとおりに組み立てられること（注目項目の件数、価格表示、行動喚起、meta）。存在しない slug で `ServiceNotFoundError` | DD-09、CC-01〜03 |
-| TC-I02 | CMP-M02 EngagementManager | `getContactView` の選択肢が導線 `inquiry` のサービスだけになること、`getChannelLinks` の順序 | DD-09、CC-04、CC-05 |
+| TC-I02 | CMP-M02 EngagementManager | `getContactView` の選択肢が導線 `inquiry` のサービスだけになること、`getChannelLinks` の順序。ニュース：記事カードの `href`、`getArticleFeedView` の件数、記事の View の meta（`article`、記事の画像、canonical）・筆者・共有リンク（canonical を共有すること）・フォロー・関連記事（自分を含まない）、存在しない slug で `ArticleNotFoundError`、RSS の項目が絶対 URL で新しい順 | DD-09、CC-04、CC-05、CC-07 |
 
 ## 4.4 アーキテクチャテスト（TC-A）
 
@@ -42,22 +43,25 @@
 
 | ID | 確認すること | 画面 / 設計 |
 | --- | --- | --- |
-| TC-S01 | 全画面が表示され、各画面に 02a §2a.4 の項目があること | SCR-00〜06 |
+| TC-S01 | 全画面が表示され、各画面に 02a §2a.4 の項目があること | SCR-00〜08 |
 | TC-S02 | トップ → サービス一覧 → 詳細 → 問い合わせ（サービスが選ばれた状態）と進めること | SCR-01, 03, 04, 05、CC-03, 04 |
 | TC-S03 | 行動喚起が外部の場のサービスでは、ボタンが外部の URL を新しいタブで開くこと | SCR-04、CC-03 |
 | TC-S04 | 全画面のフッターに外部チャネルのリンクが RES-03 の順で並ぶこと | SCR-00、CC-05 |
 | TC-S05 | 存在しない URL で 404 ページが表示され、トップに戻れること | SCR-06 |
 | TC-S06 | `main` への push で、公開 URL に変更が反映されること（初回のデプロイ時と、ワークフローを変えたときに手動で確認） | DD-13、CC-06 |
-| TC-S07 | スキーマに違反するコンテンツを含めると `npm run build` が失敗し、ファイル名と項目が表示されること | DD-02、DD-14、CC-06 |
+| TC-S07 | スキーマに違反するコンテンツ（ニュースの記事を含む）を含めると `npm run build` が失敗し、ファイル名と項目が表示されること | DD-02、DD-08、DD-14、CC-06 |
 | TC-S08 | サイト内リンクにリンク切れがないこと | 全画面 |
-| TC-S09 | JavaScript を無効にしても、FR-01〜07 と FR-10 の内容が表示されること | DD-11 |
+| TC-S09 | JavaScript を無効にしても、FR-01〜07、FR-10、FR-11、FR-15（共有とフォローのリンク）、FR-16 の内容が表示され、「リンクをコピー」が表示されないこと | DD-11 |
 | TC-S10 | すべての制作例に種類のラベルが表示されること。制作例が 0 件のフィクスチャでは欄が出ず、サービスが 0 件のフィクスチャでは「準備中です」と問い合わせへの誘導が出ること | SCR-01, SCR-02, SCR-03、DD-11 |
+| TC-S11 | ナビゲーションの「ニュース」から一覧が開き、記事カード（画像、分類、公開日、見出し）が新しい順に並ぶこと。トップの「最新のニュース」が「サービス」の上にあり、カードから記事が開くこと。記事のページに 02a §2a.4 SCR-08 の項目が表の順に並ぶこと | SCR-01, SCR-07, SCR-08、CC-07 |
+| TC-S12 | 記事のページの共有リンク（上と下）が X・Threads・はてなブックマークの順で、記事の canonical をエンコードして含み、新しいタブで開くこと。フォローのリンクが RES-03 の順に並ぶこと。JavaScript が有効なとき「リンクをコピー」が表示され、押すとクリップボードに canonical が入り「コピーしました」と出ること | SCR-08、EIF-06、DD-11 |
+| TC-S13 | `/news/rss.xml` が XML として読め、公開中の記事が新しい順に絶対 URL で入っていること。全画面の `<head>` に RSS の `link rel="alternate"` があること | EIF-07、DD-11 |
 
 ## 4.6 非機能テスト（TC-N）
 
 | ID | 確認すること | NFR |
 | --- | --- | --- |
-| TC-N01 | Lighthouse（モバイル）で、全画面の Performance、Accessibility、Best Practices、SEO が 90 以上（3 回の中央値）。`@lhci/cli` は依存に既知の脆弱性を含むため使わない | NFR-02, NFR-03, NFR-04 |
+| TC-N01 | Lighthouse（モバイル）で、全画面（ニュース一覧と記事のページを含む）の Performance、Accessibility、Best Practices、SEO が 90 以上（3 回の中央値）。`@lhci/cli` は依存に既知の脆弱性を含むため使わない | NFR-02, NFR-03, NFR-04 |
 | TC-N02 | axe で重大（critical / serious）な違反が 0 件 | NFR-03 |
 | TC-N03 | 全画面で title・description・canonical・OGP が固有であること。sitemap と robots.txt が出力されること | NFR-04 |
 | TC-N04 | 幅 360px で横スクロールが発生しないこと | NFR-01 |
@@ -84,12 +88,12 @@ The Method では、設計の正しさは「変化が起きたときに変更が
 | TC-R03 | VOL-03 | 価格表示を全体で「〜から」に統一する | 変更が RES-01 の表示設定だけ |
 | TC-R04 | VOL-04 | 制作例の並びを新しい順にする | 変更が RES-01 の表示設定だけ |
 | TC-R05 | VOL-05 | コンテンツの保管場所を別の形式に移す | 変更が CMP-A01 だけ（契約は変えない） |
-| TC-R06 | VOL-06 | 記事一覧を note の RSS から取得する | 変更が CMP-A04 の実装と `compose.ts` だけ |
-| TC-R07 | VOL-07 | 外部チャネルを 1 つ追加する | 変更が RES-03 だけ |
+| TC-R06 | VOL-06 | 自サイトのニュースに note の記事も並べる | 変更が CMP-A04 の実装と `compose.ts` だけ（note の記事に本文がないことによる契約の拡張は、DD-08 に書いたとおり別に見直す） |
+| TC-R07 | VOL-07 | 外部チャネルを 1 つ追加する。記事の共有先を 1 つ追加する | 変更が RES-03 だけ（共有先のアイコンが新しければ `Icon.astro` も） |
 | TC-R08 | VOL-08 | 独自ドメインに移す | 変更が CMP-U01 の設定と DNS だけ |
 | TC-R09 | VOL-09 | アクセス解析を入れる | 変更が CMP-U03 の設定だけ |
 | TC-R10 | VOL-10 | 配色とフォントを変える | 変更が CMP-C01 だけ |
-| TC-R11 | VOL-11 | トップに最新記事の一覧を出す | 変更が CMP-M01 / CMP-M02 の手順と CMP-C01 だけ |
+| TC-R11 | VOL-11 | 記事のページにサービスへの誘導を足す | 変更が CMP-M01 / CMP-M02 の手順と CMP-C01 だけ |
 
 ## 4.8 手動の確認の記録
 

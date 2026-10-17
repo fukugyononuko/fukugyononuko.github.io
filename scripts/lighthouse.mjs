@@ -8,7 +8,7 @@ import lighthouse from "lighthouse";
 import { chromium } from "playwright";
 
 const PORT = 4322;
-const PAGES = ["/", "/about/", "/services/", "/services/homepage-mock/", "/contact/"];
+const PAGES = ["/", "/about/", "/services/", "/services/homepage-mock/", "/news/", "/news/news-section/", "/contact/"];
 const CATEGORIES = ["performance", "accessibility", "best-practices", "seo"];
 const THRESHOLD = 90;
 const RUNS = 3; // 計測のぶれを抑えるため、3 回の中央値で判定する

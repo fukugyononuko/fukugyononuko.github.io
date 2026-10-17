@@ -67,6 +67,11 @@ img {
   padding-inline: var(--gutter);
 }
 
+/* hidden 属性を、部品の display の指定より優先する（JS が無効なときに隠す部品のため。DD-11） */
+[hidden] {
+  display: none !important;
+}
+
 .visually-hidden {
   position: absolute;
   width: 1px;

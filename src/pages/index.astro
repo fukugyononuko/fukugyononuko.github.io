@@ -1,13 +1,14 @@
 ---
-// CMP-C01 Pages / SCR-01 トップ（DD-11、CC-01、FR-09）
+// CMP-C01 Pages / SCR-01 トップ（DD-11、CC-01、CC-07、FR-09、FR-11）
 import BaseLayout from "../layouts/BaseLayout.astro";
 import Button from "../components/Button.astro";
 import Section from "../components/Section.astro";
 import ServiceCard from "../components/ServiceCard.astro";
 import WorkList from "../components/WorkList.astro";
-import { showcase } from "../system/compose";
+import ArticleCard from "../components/ArticleCard.astro";
+import { engagement, showcase } from "../system/compose";
 
-const view = await showcase.getHomeView();
+const [view, news] = await Promise.all([showcase.getHomeView(), engagement.getArticleFeedView(3)]);
 ---
 <BaseLayout meta={view.meta}>
   <section class="hero">
@@ -43,6 +44,15 @@ const view = await showcase.getHomeView();
         ))}
       </ul>
       <p class="more"><a href="/about/">プロフィールとできることの一覧へ</a></p>
+    </Section>
+  )}
+
+  {news.articles.length > 0 && (
+    <Section id="news" heading="最新のニュース">
+      <ul class="cards news">
+        {news.articles.map((a) => <li><ArticleCard article={a} /></li>)}
+      </ul>
+      <p class="more"><a href="/news/">ニュースの一覧へ</a></p>
     </Section>
   )}
 
@@ -145,6 +155,10 @@ const view = await showcase.getHomeView();
     margin: var(--space-6) 0 0;
     padding: 0;
     list-style: none;
+  }
+  /* 記事が少なくてもカードを全幅に広げない（ヒーローの写真と大きさが重ならないように） */
+  .cards.news {
+    grid-template-columns: repeat(auto-fill, minmax(16rem, 1fr));
   }
   .more {
     margin: var(--space-4) 0 0;

@@ -1,12 +1,12 @@
 // DD-01 契約：構成要素のインターフェース（CMP-M01〜U03）
 import type { CallToAction, PriceDisplay } from "./engine-results";
 import type {
-  Article, Channel, CurationRule, Curatable, InquiryChannel, OperatorProfile,
-  PresentationSettings, PricePolicy, PriceSpec, ServiceRecord, SkillGroup, Work,
+  Article, ArticleRecord, Channel, CurationRule, Curatable, InquiryChannel, OperatorProfile,
+  PresentationSettings, PricePolicy, PriceSpec, ServiceRecord, ShareLink, SkillGroup, Taggable, Work,
 } from "./records";
 import type {
   AboutView, AnalyticsTag, ArticleFeedView, ChannelLinkView, ContactView, HomeView,
-  LayoutView, PageMeta, ServiceCatalogView, ServiceDetailView,
+  LayoutView, NewsArticleView, NewsFeedView, NewsIndexView, PageMeta, ServiceCatalogView, ServiceDetailView,
 } from "./views";
 
 /** CMP-M01 */
@@ -23,8 +23,11 @@ export interface ShowcaseManager {
 export interface EngagementManager {
   getChannelLinks(): Promise<ChannelLinkView[]>;
   getContactView(): Promise<ContactView>;
-  /** 将来（FR-11） */
   getArticleFeedView(limit: number): Promise<ArticleFeedView>;
+  getNewsIndexView(): Promise<NewsIndexView>;
+  listArticleSlugs(): Promise<string[]>;
+  getNewsArticleView(slug: string): Promise<NewsArticleView>;
+  getNewsFeed(): Promise<NewsFeedView>;
 }
 
 /** CMP-E01 */
@@ -36,6 +39,7 @@ export interface PricingEngine {
 export interface CurationEngine {
   pickFeatured<T extends Curatable>(items: T[], rule: CurationRule): T[];
   arrange<T extends Curatable>(items: T[], rule: CurationRule): T[];
+  pickRelated<T extends Taggable>(items: T[], base: Taggable, limit: number): T[];
 }
 
 /** CMP-E03 */
@@ -62,11 +66,14 @@ export interface InquiryAccess {
 export interface ChannelAccess {
   listChannels(): Promise<Channel[]>;
   findChannel(id: string): Promise<Channel | undefined>;
+  listShareLinks(page: { url: string; title: string }): Promise<ShareLink[]>;
 }
 
-/** CMP-A04（将来） */
+/** CMP-A04 */
 export interface ArticleAccess {
-  listRecentArticles(limit: number): Promise<Article[]>;
+  /** 公開中の記事を新しい順に。limit を省くとすべて */
+  listRecentArticles(limit?: number): Promise<Article[]>;
+  findArticle(slug: string): Promise<ArticleRecord | undefined>;
 }
 
 /** CMP-U01 */
