@@ -1,0 +1,5 @@
+# RES-03 記事の共有先（DD-07「共有先」、EIF-06）。url の {url} と {title} は、記事の絶対 URL と見出しに置き換える。
+# 共有先のスクリプトは読み込まず、共有用 URL へのリンクだけにする（NFR-15、NFR-16）。
+- { id: x, label: X, icon: x, url: "https://x.com/intent/post?text={title}&url={url}", order: 10 }
+- { id: threads, label: Threads, icon: threads, url: "https://www.threads.com/intent/post?text={title}&url={url}", order: 20 }
+- { id: hatena, label: はてなブックマーク, icon: hatena, url: "https://b.hatena.ne.jp/add?mode=confirm&url={url}&title={title}", order: 30 }

@@ -1,0 +1,53 @@
+---
+// CMP-C01 Pages / SCR-07 ニュース一覧（DD-11、CC-07、FR-11、FR-17）
+import BaseLayout from "../../layouts/BaseLayout.astro";
+import ArticleCard from "../../components/ArticleCard.astro";
+import Icon from "../../components/Icon.astro";
+import { engagement } from "../../system/compose";
+
+const view = await engagement.getNewsIndexView();
+---
+<BaseLayout meta={view.meta}>
+  <div class="container page">
+    <h1>ニュース</h1>
+    <p class="lead">お知らせ、制作の記録、読み物を載せています。</p>
+    {view.articles.length > 0 ? (
+      <ul class="cards">
+        {view.articles.map((a) => <li><ArticleCard article={a} headingLevel={2} /></li>)}
+      </ul>
+    ) : (
+      <p>ニュースは準備中です。</p>
+    )}
+    <p class="feed"><a href={view.feedHref}><Icon name="rss" />RSS で購読する</a></p>
+  </div>
+</BaseLayout>
+
+<style>
+  .page {
+    padding-block: var(--space-8) var(--space-12);
+  }
+  h1 {
+    margin: 0 0 var(--space-2);
+    font-size: clamp(1.75rem, 5vw, 2.25rem);
+  }
+  .lead {
+    margin: 0 0 var(--space-8);
+    color: var(--color-text-muted);
+  }
+  .cards {
+    display: grid;
+    gap: var(--space-6) var(--space-4);
+    grid-template-columns: repeat(auto-fill, minmax(17rem, 1fr));
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+  .feed {
+    margin: var(--space-8) 0 0;
+  }
+  .feed a {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--space-2);
+  }
+</style>

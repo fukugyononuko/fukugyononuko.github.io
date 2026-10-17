@@ -102,9 +102,43 @@ export type InquiryChannel =
   | { kind: "embed"; src: string; fallbackUrl: string; note?: string }
   | { kind: "link"; url: string; label: string; note?: string };
 
-export interface Article {
+/** 関連の強さを比べられる項目（CurationEngine の pickRelated の入力。DD-04） */
+export interface Taggable {
+  id: string;
+  /** ISO 8601（YYYY-MM-DD） */
+  date?: string;
+  tags: string[];
+}
+
+/** お知らせ / 制作 / 読み物（FR-11） */
+export type ArticleCategory = "notice" | "work" | "essay";
+
+export interface ArticleImage extends ImageRef {
+  caption?: string;
+}
+
+/** ニュースの記事の要約（一覧用。本文なし） */
+export interface Article extends Taggable {
+  slug: string;
   title: string;
+  summary: string;
+  category: ArticleCategory;
+  /** 公開日（ISO 8601） */
+  date: string;
+  /** 更新日（ISO 8601） */
+  updated?: string;
+  image?: ArticleImage;
+}
+
+/** 本文つきの記事 */
+export interface ArticleRecord extends Article {
+  body: TrustedHtml;
+}
+
+/** 記事を共有するリンク 1 つ分（解決済みの URL。DD-07） */
+export interface ShareLink {
+  id: string;
+  label: string;
+  icon: string;
   url: string;
-  publishedAt: string;
-  source: string;
 }

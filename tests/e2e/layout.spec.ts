@@ -2,7 +2,7 @@
 // TC-N04（幅 360px で横スクロールなし）と TC-N05（ダークモード）。フェーズ 3 で全画面に広げる。
 import { expect, test } from "@playwright/test";
 
-const pages = ["/", "/about/", "/services/", "/services/homepage-mock/", "/contact/", "/no-such-page/"];
+const pages = ["/", "/about/", "/services/", "/services/homepage-mock/", "/news/", "/news/news-section/", "/contact/", "/no-such-page/"];
 
 test.describe("TC-N04：幅 360px で横スクロールが発生しない", () => {
   test.use({ viewport: { width: 360, height: 780 } });

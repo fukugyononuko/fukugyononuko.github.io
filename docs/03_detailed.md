@@ -492,7 +492,7 @@ image: { src: /images/news/news-section.webp, alt: "……", caption: "……" }
   - 記事カードの画像は、記事の画像がなければ既定の画像（`/og-default.jpg`）を出す。カードの画像は `alt=""`（見出しがリンクの文字になるため、読み上げを重ねない）、`loading="lazy"`。カード全体を 1 つのリンクにする。
   - 記事のページの画像は `alt` を記事のものにし、`fetchpriority="high"`。画像の枠は 16:9（`aspect-ratio`、`object-fit: cover`）にして、読み込みでレイアウトがずれないようにする。画像がない記事では枠ごと出さない。
   - 共有ボタン（`ShareButtons.astro`）は共有リンクを `ExternalLink.astro` で出す。リンクの読み上げは「{ラベル}で共有」。アイコンの対応は `Icon.astro`（`hatena`、`copy` を足す）。
-  - 「リンクをコピー」は `<button hidden data-copy-url="…">` で出し、`copy-link.ts` が `hidden` を外す（JavaScript が無効なら表示されない。NFR-10）。押すと `navigator.clipboard.writeText` で URL をコピーし、ボタンの横の `role="status"` に「コピーしました」と出す。クリップボードが使えないときは「コピーできませんでした」と出す。値を HTML として書き込まない（`textContent` を使う。NFR-15）。
+  - 「リンクをコピー」は `<button hidden data-copy-url="…">` で出し、`copy-link.ts` が、クリップボード API（`navigator.clipboard`）が使えるときだけ `hidden` を外す（JavaScript が無効なときや、API のないブラウザでは表示されない。NFR-10）。押すと `navigator.clipboard.writeText` で URL をコピーし、ボタンの横の `role="status"` に「リンクをコピーしました」と出す。コピーに失敗したときは「コピーできませんでした」と出す。値を HTML として書き込まない（`textContent` を使う。NFR-15）。
   - RSS は `rss.xml.ts` が XML を組み立てる。文字列は `&`、`<`、`>`、`"`、`'` をエスケープする。依存は増やさない（`@astrojs/rss` は zod と XML パーサーへの依存が増えるため使わない）。
   - 共通レイアウトの `<head>` に `<link rel="alternate" type="application/rss+xml" href="/news/rss.xml">` を置く。
 

@@ -1,0 +1,98 @@
+---
+// CMP-C01 記事のカード（SCR-01、SCR-07、SCR-08 の関連記事。DD-11）
+// 画像は飾りとして扱い（alt=""）、見出しのリンクをカード全体に広げる。
+import type { ArticleCard } from "../system/contracts";
+import { categoryLabel, DEFAULT_ARTICLE_IMAGE, formatDate } from "./news-format";
+
+interface Props {
+  article: ArticleCard;
+  headingLevel?: 2 | 3;
+}
+const { article, headingLevel = 3 } = Astro.props;
+const Heading = `h${headingLevel}` as "h2" | "h3";
+---
+<article class="card">
+  <div class="thumb">
+    <img src={article.image?.src ?? DEFAULT_ARTICLE_IMAGE} alt="" width="1600" height="900" loading="lazy" decoding="async" />
+  </div>
+  <div class="text">
+    <p class="meta">
+      <span class:list={["category", article.category]}>{categoryLabel[article.category]}</span>
+      <time datetime={article.date}>{formatDate(article.date)}</time>
+    </p>
+    <Heading class="title"><a href={article.href}>{article.title}</a></Heading>
+    <p class="summary">{article.summary}</p>
+  </div>
+</article>
+
+<style>
+  .card {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    overflow: hidden;
+    background: var(--color-surface);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-m);
+    box-shadow: 0 2px 12px var(--color-shadow);
+    transition: transform 0.15s;
+  }
+  .card:hover {
+    transform: translateY(-2px);
+  }
+  .thumb img {
+    width: 100%;
+    aspect-ratio: 16 / 9;
+    object-fit: cover;
+  }
+  .text {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-2);
+    padding: var(--space-4) var(--space-6) var(--space-6);
+  }
+  .meta {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: var(--space-2) var(--space-3);
+    margin: 0;
+    color: var(--color-text-muted);
+    font-size: 0.875rem;
+  }
+  .category {
+    padding: 0 var(--space-3);
+    border-radius: var(--radius-full);
+    background: var(--color-sea-soft);
+    color: var(--color-text);
+    font-weight: 700;
+  }
+  .title {
+    margin: 0;
+    font-size: 1.125rem;
+  }
+  .title a {
+    color: var(--color-text);
+    text-decoration: none;
+  }
+  /* カード全体をクリックできるようにする */
+  .title a::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    border-radius: var(--radius-m);
+  }
+  .title a:focus-visible {
+    outline: none;
+  }
+  .card:has(.title a:focus-visible) {
+    outline: 3px solid var(--color-sea);
+    outline-offset: 3px;
+  }
+  .summary {
+    margin: 0;
+    color: var(--color-text-muted);
+    font-size: 0.9375rem;
+  }
+</style>

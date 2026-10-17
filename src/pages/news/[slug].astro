@@ -1,0 +1,236 @@
+---
+// CMP-C01 Pages / SCR-08 記事（DD-11、CC-07、FR-11、FR-15、FR-16）
+// 構成はユーザーが示した資料（NASA のニュースリリースのページ）にならい、縦 1 列で 02a §2a.4 の表の順に並べる。
+import BaseLayout from "../../layouts/BaseLayout.astro";
+import ArticleCard from "../../components/ArticleCard.astro";
+import ExternalLink from "../../components/ExternalLink.astro";
+import Icon from "../../components/Icon.astro";
+import ShareButtons from "../../components/ShareButtons.astro";
+import { categoryLabel, formatDate } from "../../components/news-format";
+import { engagement } from "../../system/compose";
+
+export async function getStaticPaths() {
+  const slugs = await engagement.listArticleSlugs();
+  return slugs.map((slug) => ({ params: { slug } }));
+}
+
+const view = await engagement.getNewsArticleView(Astro.params.slug!);
+const { article } = view;
+---
+<BaseLayout meta={view.meta}>
+  <article class="container page">
+    <header class="head">
+      <p class="meta">
+        <span class="category">{categoryLabel[article.category]}</span>
+        <time datetime={article.date}>{formatDate(article.date)}</time>
+        {article.updated && article.updated !== article.date && (
+          <span class="updated">更新：<time datetime={article.updated}>{formatDate(article.updated)}</time></span>
+        )}
+      </p>
+      <h1>{article.title}</h1>
+      <p class="author">
+        <img src={view.author.avatar.src} alt="" width="40" height="40" />
+        <span>{view.author.name}</span>
+      </p>
+      <ShareButtons links={view.share} url={view.meta.canonical} position="top" />
+    </header>
+
+    {article.image && (
+      <figure class="hero">
+        <img src={article.image.src} alt={article.image.alt} width="1600" height="900" fetchpriority="high" />
+        {article.image.caption && <figcaption>{article.image.caption}</figcaption>}
+      </figure>
+    )}
+
+    <div class="body" set:html={article.body} />
+
+    <footer class="foot">
+      <ShareButtons links={view.share} url={view.meta.canonical} position="bottom" />
+      {view.follow.length > 0 && (
+        <section class="follow" aria-labelledby="follow">
+          <h2 id="follow">{view.author.name}をフォローする</h2>
+          <ul>
+            {view.follow.map((c) => (
+              <li><ExternalLink class="channel" href={c.url}><Icon name={c.icon} />{c.label}</ExternalLink></li>
+            ))}
+          </ul>
+        </section>
+      )}
+      {article.tags.length > 0 && (
+        <p class="tags">
+          <span class="visually-hidden">タグ：</span>
+          {article.tags.map((t) => <span class="tag">#{t}</span>)}
+        </p>
+      )}
+    </footer>
+  </article>
+
+  {view.related.length > 0 && (
+    <section class="container related" aria-labelledby="related">
+      <h2 id="related">関連記事</h2>
+      <ul class="cards">
+        {view.related.map((a) => <li><ArticleCard article={a} /></li>)}
+      </ul>
+    </section>
+  )}
+  <p class="container back"><a href="/news/">ニュースの一覧へ</a></p>
+</BaseLayout>
+
+<style>
+  .page {
+    max-width: 52rem;
+    padding-block: var(--space-8) var(--space-6);
+  }
+  .head,
+  .body,
+  .foot {
+    max-width: 40rem;
+    margin-inline: auto;
+  }
+  .meta {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: var(--space-2) var(--space-3);
+    margin: 0;
+    color: var(--color-text-muted);
+    font-size: 0.9375rem;
+  }
+  .category {
+    padding: 0 var(--space-3);
+    border-radius: var(--radius-full);
+    background: var(--color-sea-soft);
+    color: var(--color-text);
+    font-weight: 700;
+  }
+  h1 {
+    margin: var(--space-3) 0 var(--space-4);
+    font-size: clamp(1.75rem, 5.5vw, 2.5rem);
+  }
+  .author {
+    display: flex;
+    align-items: center;
+    gap: var(--space-2);
+    margin: 0 0 var(--space-4);
+    font-weight: 700;
+  }
+  .author img {
+    width: 2.5rem;
+    height: 2.5rem;
+    border-radius: var(--radius-full);
+  }
+  .hero {
+    margin: var(--space-8) 0;
+  }
+  .hero img {
+    width: 100%;
+    aspect-ratio: 16 / 9;
+    object-fit: cover;
+    border-radius: var(--radius-l);
+    box-shadow: 0 8px 32px var(--color-shadow);
+  }
+  figcaption {
+    margin-top: var(--space-2);
+    color: var(--color-text-muted);
+    font-size: 0.875rem;
+  }
+  .body {
+    margin-top: var(--space-8);
+    font-size: 1.0625rem;
+  }
+  .body :global(h2) {
+    margin: var(--space-8) 0 var(--space-2);
+    font-size: 1.375rem;
+  }
+  .body :global(h3) {
+    margin: var(--space-6) 0 var(--space-2);
+    font-size: 1.125rem;
+  }
+  .body :global(p),
+  .body :global(ul),
+  .body :global(ol) {
+    margin: 0 0 var(--space-4);
+  }
+  .body :global(blockquote) {
+    margin: 0 0 var(--space-4);
+    padding-left: var(--space-4);
+    border-left: 4px solid var(--color-grass);
+    color: var(--color-text-muted);
+  }
+  .body :global(img) {
+    border-radius: var(--radius-m);
+  }
+  .foot {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-6);
+    margin-top: var(--space-8);
+    padding-top: var(--space-6);
+    border-top: 1px solid var(--color-border);
+  }
+  .follow h2 {
+    margin: 0 0 var(--space-2);
+    font-size: 1rem;
+  }
+  .follow ul {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-2) var(--space-4);
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+  .channel {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--space-2);
+    color: var(--color-text);
+    text-decoration: none;
+  }
+  .channel:hover {
+    color: var(--color-sea);
+  }
+  .tags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-2);
+    margin: 0;
+  }
+  .tag {
+    padding: 0 var(--space-3);
+    border-radius: var(--radius-full);
+    background: var(--color-sunken);
+    color: var(--color-text-muted);
+    font-size: 0.875rem;
+  }
+  .related {
+    padding-block: var(--space-8);
+  }
+  .related h2 {
+    margin: 0 0 var(--space-6);
+    font-size: 1.5rem;
+  }
+  .cards {
+    display: grid;
+    gap: var(--space-4);
+    grid-template-columns: repeat(auto-fit, minmax(16rem, 1fr));
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+  .back {
+    padding-bottom: var(--space-12);
+  }
+  .back a::before {
+    content: "← ";
+  }
+  @media (prefers-color-scheme: dark) {
+    .hero img {
+      filter: brightness(0.9);
+    }
+  }
+</style>
+
+<script>
+  import "../../scripts/copy-link";
+</script>

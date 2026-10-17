@@ -1,6 +1,6 @@
 // テスト用の偽物（TC-I01、TC-I02）。ResourceAccess を差し替えて Manager を検査する。
 import type {
-  Channel, ChannelAccess, ContentAccess, InquiryAccess, InquiryChannel, OperatorProfile,
+  ArticleAccess, ArticleRecord, Channel, ChannelAccess, ContentAccess, InquiryAccess, InquiryChannel, OperatorProfile,
   PresentationSettings, ServiceRecord, SkillGroup, Work,
 } from "../../src/system/contracts";
 import { createSiteConfig } from "../../src/system/utilities/config";
@@ -64,6 +64,30 @@ export function fakeChannels(channels: Channel[]): ChannelAccess {
   return {
     listChannels: async () => [...channels].sort((a, b) => a.order - b.order),
     findChannel: async (id) => channels.find((c) => c.id === id),
+    listShareLinks: async (page) => [
+      { id: "x", label: "X", icon: "x", url: `https://x.example.com/share?url=${encodeURIComponent(page.url)}` },
+    ],
+  };
+}
+
+export function article(overrides: Partial<ArticleRecord> & { slug: string; date: string }): ArticleRecord {
+  return {
+    id: overrides.slug,
+    title: `記事 ${overrides.slug}`,
+    summary: "要約",
+    category: "notice",
+    tags: [],
+    body: `<p>${overrides.slug}</p>`,
+    ...overrides,
+  };
+}
+
+/** 渡した順を「新しい順」とみなす偽物 */
+export function fakeArticles(records: ArticleRecord[]): ArticleAccess {
+  const summaries = records.map(({ body: _body, ...a }) => a);
+  return {
+    listRecentArticles: async (limit) => (limit === undefined ? summaries : summaries.slice(0, limit)),
+    findArticle: async (slug) => records.find((a) => a.slug === slug),
   };
 }
 
