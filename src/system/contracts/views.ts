@@ -85,6 +85,8 @@ export interface ChannelLinkView {
 export interface ArticleCard extends Article {
   /** 記事のページのパス（ベースパスつき） */
   href: string;
+  /** 読む時間の目安（分。FR-18） */
+  readingMinutes: number;
 }
 
 /** トップの最新のニュース（FR-11） */
@@ -104,6 +106,8 @@ export interface NewsIndexView {
 export interface NewsArticleView {
   meta: PageMeta;
   article: ArticleRecord;
+  /** 読む時間の目安（分。FR-18） */
+  readingMinutes: number;
   author: { name: string; avatar: ImageRef };
   /** FR-15 共有（リンクのコピーは Client が足す。コピーする URL は meta.canonical） */
   share: ShareLink[];

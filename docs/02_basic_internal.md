@@ -11,6 +11,7 @@
 | CMP-E01 | PricingEngine | Engine | VOL-03 | 初期 |
 | CMP-E02 | CurationEngine | Engine | VOL-04 | 初期 |
 | CMP-E03 | CtaEngine | Engine | VOL-02 | 初期 |
+| CMP-E04 | ReadingTimeEngine | Engine | VOL-12 | 初期 |
 | CMP-A01 | ContentAccess | ResourceAccess | VOL-05 | 初期 |
 | CMP-A02 | InquiryAccess | ResourceAccess | VOL-01 | 初期 |
 | CMP-A03 | ChannelAccess | ResourceAccess | VOL-07 | 初期 |
@@ -51,10 +52,10 @@
 | --- | --- | --- |
 | `getChannelLinks()` | 共通フッターに出す外部チャネルのリンク | A03 |
 | `getContactView()` | 問い合わせ手段と、問い合わせで指定できるサービスの選択肢 | A02, A01, E03, U02 |
-| `getArticleFeedView(limit)` | 最新の記事カード（最大 `limit` 件。トップ用） | A04 |
-| `getNewsIndexView()` | ニュース一覧（すべての記事カード、新しい順） | A04, A01, U02 |
+| `getArticleFeedView(limit)` | 最新の記事カード（最大 `limit` 件。トップ用） | A04, E04 |
+| `getNewsIndexView()` | ニュース一覧（すべての記事カード、新しい順） | A04, A01, E04, U02 |
 | `listArticleSlugs()` | 記事のページを生成する slug の一覧 | A04 |
-| `getNewsArticleView(slug)` | 1 つの記事と、筆者・共有リンク・フォローのリンク・関連記事 | A04, A01, A03, E02, U02 |
+| `getNewsArticleView(slug)` | 1 つの記事と、筆者・読む時間・共有リンク・フォローのリンク・関連記事 | A04, A01, A03, E02, E04, U02 |
 | `getNewsFeed()` | RSS フィードの中身（絶対 URL つき） | A04, A01, U01 |
 
 `getContactView` は、各サービスについて CtaEngine に導線を判定させ、導線が「問い合わせ」のサービスだけを選択肢にする。note で販売しているもの（将来）を問い合わせの選択肢に出さないため。
@@ -74,6 +75,11 @@
 - 責務：サービスごとに、訪問者をどこにつなぐかを決める（VOL-02）。
 - `decideForService(service)`：行き先（問い合わせ / 外部の場）、リンク先、ラベルを返す。
 - 外部の場の URL は CMP-A03 ChannelAccess から得る。存在しないチャネルが指定されていたらエラーにする（DD-14）。
+
+### CMP-E04 ReadingTimeEngine
+- 責務：本文の文字から、読む時間の目安（分）を見積もる（VOL-12、FR-18）。
+- `estimateMinutes(text)`：文字だけにした本文から、分（1 以上の整数）を返す。リソースにはアクセスしない（純粋な関数）。
+- 記事であることも HTML の形も知らない。本文を文字だけにするのは CMP-A04 の仕事（記事の形式を隠すため）。
 
 ### CMP-A01 ContentAccess
 - 責務：コンテンツ（RES-01）を業務の言葉で提供する。保管場所と形式を隠す（VOL-05）。
@@ -101,7 +107,7 @@
 
 ### CMP-A04 ArticleAccess
 - 責務：記事の出所（初期は自サイトのニュース。将来は note の RSS なども）を隠して、記事を提供する（VOL-06）。
-- `listRecentArticles(limit?)`：公開中の記事を新しい順に最大 `limit` 件（省略時はすべて）。本文は含めない。外部から取得する実装（将来）では、取得に失敗したら空の一覧を返し、警告を出す。
+- `listRecentArticles(limit?)`：公開中の記事を新しい順に最大 `limit` 件（省略時はすべて）。本文の HTML は含めない。読む時間を見積もるための、文字だけにした本文（`bodyText`）は含める。外部から取得する実装（将来）では、取得に失敗したら空の一覧を返し、警告を出す。
 - `findArticle(slug)`：公開中の記事 1 件（本文つき）。なければ `undefined`。
 - 下書き（`draft: true`）は返さない。
 
@@ -269,11 +275,13 @@ sequenceDiagram
   participant CA as A01 ContentAccess
   participant CH as A03 ChannelAccess
   participant CE as E02 CurationEngine
+  participant RT as E04 ReadingTimeEngine
   participant SEO as U02 Seo
   actor V as 訪問者のブラウザ
   Note over P,SEO: ビルド時
   P->>EM: getArticleFeedView(3)（トップ）/ getNewsIndexView()（一覧）
   EM->>AA: listRecentArticles(limit)
+  EM->>RT: estimateMinutes(bodyText)（記事ごと）
   EM-->>P: ArticleFeedView / NewsIndexView
   P->>EM: listArticleSlugs()
   loop slug ごと
@@ -281,6 +289,7 @@ sequenceDiagram
     EM->>AA: findArticle(slug)
     EM->>AA: listRecentArticles()
     EM->>CE: pickRelated(articles, article, 3)
+    EM->>RT: estimateMinutes(bodyText)（記事と関連記事）
     EM->>CA: getOperatorProfile()（筆者）
     EM->>SEO: buildPageMeta(...)（type: article、記事の画像）
     EM->>CH: listShareLinks({ url: canonical, title })
@@ -296,7 +305,7 @@ sequenceDiagram
 
 ## 2b.4 変動性への対応の確認
 
-各変動性が起きたとき、変更が 1 つの構成要素（とデータ・設定）の中で済むことを確認する。テストとしては TC-R01〜TC-R11（04 §4.6）でレビューする。
+各変動性が起きたとき、変更が 1 つの構成要素（とデータ・設定）の中で済むことを確認する。テストとしては TC-R01〜TC-R12（04 §4.7）でレビューする。
 
 | VOL | 変化の例 | 変える場所 | 変えなくてよい場所 |
 | --- | --- | --- | --- |
@@ -311,6 +320,7 @@ sequenceDiagram
 | VOL-09 | アクセス解析を導入 | U03 と設定 | それ以外のすべて |
 | VOL-10 | デザインを変更 | C01 | Business Logic 以下のすべて |
 | VOL-11 | 記事のページにサービスへの誘導を足す | M01 / M02 の手順と C01 の表示 | Engine、ResourceAccess |
+| VOL-12 | 読む時間を黙読の速さで見積もる。画像 1 枚ごとに時間を足す | E04（画像の数が要るなら A04 の `Article` と契約も） | Manager、ページ |
 
 ## 2b.5 層をまたいで共有する型（データの契約）
 
@@ -320,10 +330,10 @@ sequenceDiagram
 | --- | --- | --- | --- |
 | `Taggable` | `records.ts` | —（Engine の入力の形） | `Curatable` にタグ（`tags: string[]`）を足したもの。CurationEngine の `pickRelated` が受け取る |
 | `ArticleCategory` | `records.ts` | A04 → M02 → C01 | 記事の分類 `"notice" \| "work" \| "essay"`。表示のラベルは Client が持つ（制作例の種類と同じ。DD-11） |
-| `Article`、`ArticleImage` | `records.ts` | A04 → M02 → C01 | 記事の要約（一覧用、本文なし）と画像。`Article` は `Taggable` |
+| `Article`、`ArticleImage` | `records.ts` | A04 → M02 → C01 | 記事の要約（一覧用。本文の HTML はなく、文字だけにした本文 `bodyText` を持つ）と画像（キャプション、クレジット）。`Article` は `Taggable` |
 | `ArticleRecord` | `records.ts` | A04 → M02 | 本文（`TrustedHtml`）つきの記事 |
 | `ShareLink` | `records.ts` | A03 → M02 → C01 | 共有先 1 つ分の、解決済みのリンク（ラベル、アイコン名、URL） |
-| `ArticleCard` | `views.ts` | M02 → C01 | 記事カード（`Article` に記事ページの `href` を足したもの） |
+| `ArticleCard` | `views.ts` | M02 → C01 | 記事カード（`Article` に記事ページの `href` と読む時間 `readingMinutes` を足したもの） |
 | `ArticleFeedView`、`NewsIndexView`、`NewsArticleView`、`NewsFeedView` | `views.ts` | M02 → C01 | 各画面と RSS の View |
 
 旧版の `Article`（`title`、`url`、`publishedAt`、`source`。note の RSS を想定した将来の型）は、自サイトの記事に合わせて置き換える。旧版を使っていたのは「記事なし」の実装（`createNoArticleAccess`）だけで、画面からは使っていない。

@@ -20,6 +20,7 @@
 | DD-14 | エラー処理 | 全構成要素 |
 | DD-15 | ファイル配置 | 全構成要素 |
 | DD-16 | セキュリティ設計 | 全構成要素、RES-05、RES-06 |
+| DD-17 | 読む時間の見積もり方 | CMP-E04 |
 
 ## 3.1 DD-01 契約
 
@@ -113,12 +114,13 @@ export interface InquiryField {
 
 export interface Taggable { id: string; date?: string; tags: string[] }   // pickRelated の入力（DD-04）
 export type ArticleCategory = "notice" | "work" | "essay";               // お知らせ / 制作 / 読み物（FR-11）
-export interface ArticleImage extends ImageRef { caption?: string }
+export interface ArticleImage extends ImageRef { caption?: string; credit?: string }
 export interface Article extends Taggable {                              // 一覧用（本文なし）
   slug: string; title: string; summary: string; category: ArticleCategory;
   date: string;          // 公開日
   updated?: string;      // 更新日
   image?: ArticleImage;
+  bodyText: string;      // 本文を文字だけにしたもの（読む時間の見積もり用。DD-17）
 }
 export interface ArticleRecord extends Article { body: TrustedHtml }
 export interface ShareLink { id: string; label: string; icon: string; url: string }   // 解決済みの共有リンク（DD-07）
@@ -167,11 +169,11 @@ export interface ContactView {
   cspSources: { formAction: string[]; frameSrc: string[] };   // DD-16
 }
 export interface ChannelLinkView { label: string; url: string; icon: string }
-export interface ArticleCard extends Article { href: string }            // href はベースパスつき
+export interface ArticleCard extends Article { href: string; readingMinutes: number }   // href はベースパスつき
 export interface ArticleFeedView { articles: ArticleCard[] }
 export interface NewsIndexView { meta: PageMeta; articles: ArticleCard[]; feedHref: string }
 export interface NewsArticleView {
-  meta: PageMeta; article: ArticleRecord; author: { name: string; avatar: ImageRef };
+  meta: PageMeta; article: ArticleRecord; readingMinutes: number; author: { name: string; avatar: ImageRef };
   share: ShareLink[];            // リンクのコピーは Client が足す（コピーする URL は meta.canonical）
   follow: ChannelLinkView[]; related: ArticleCard[];
 }
@@ -208,6 +210,7 @@ export interface CurationEngine {
   pickRelated<T extends Taggable>(items: T[], base: Taggable, limit: number): T[];
 }
 export interface CtaEngine { decideForService(service: ServiceRecord): Promise<CallToAction> }
+export interface ReadingTimeEngine { estimateMinutes(text: string): number }   // 1 以上の整数の分
 export interface ContentAccess {
   getOperatorProfile(): Promise<OperatorProfile>;
   listSkillGroups(): Promise<SkillGroup[]>;
@@ -413,7 +416,7 @@ summary: "近況や新しい制作物のお知らせを、ここに書いてい�
 category: notice
 date: 2026-10-17
 tags: ["このサイト"]
-image: { src: /images/news/news-section.webp, alt: "……", caption: "……" }   # 任意
+image: { src: /images/news/news-section.webp, alt: "……", caption: "……", credit: "副業のぬこ" }   # 任意
 ---
 本文（Markdown）
 ```
@@ -428,13 +431,14 @@ image: { src: /images/news/news-section.webp, alt: "……", caption: "……" }
 | category | 必須。`notice` / `work` / `essay` のどれか |
 | date / updated | `date` は必須。`updated` は任意で、`date` より前の日付は不可 |
 | tags | 0〜5 個。1 つ 1〜20 字。重複は不可 |
-| image | 任意。`src` は `/images/news/` の下の `.webp` / `.jpg` / `.png`。`alt` は必須（NFR-03）。`caption` は任意。ファイルが `public/` にないときはビルド失敗 |
+| image | 任意。`src` は `/images/news/` の下の `.webp` / `.jpg` / `.png`。`alt` は必須（NFR-03）。`caption` と `credit` は任意。ファイルが `public/` にないときはビルド失敗 |
 | draft | `true` のものはどの操作も返さない（ページも RSS も作らない） |
 
 ### 操作
 
 - `listRecentArticles(limit?)`：`date` の降順 → `id` の昇順。`limit` があれば先頭から `limit` 件。
 - `findArticle(slug)`：本文（ビルド時に変換した HTML。`TrustedHtml`）つき。
+- `bodyText`：本文の HTML からタグを除き、文字参照（`&amp;` など）を文字に戻したもの。どの操作の結果にも入れる（記事カードにも読む時間を出すため）。
 - 結果はビルドの間だけメモ化してよい（DD-09）。
 
 ### 将来（VOL-06）
@@ -454,6 +458,7 @@ image: { src: /images/news/news-section.webp, alt: "……", caption: "……" }
   - 共有リンクは `ChannelAccess.listShareLinks({ url: meta.canonical, title: article.title })`。フォローのリンクは `listChannels()` をフッターと同じ形（`ChannelLinkView`）にしたもの。
   - meta：title は記事の見出し、description は要約、`type: "article"`、OGP 画像は記事の画像（なければ既定）。
   - 筆者は運営者のプロフィール（表示名とアイコン）。
+  - 読む時間は `ReadingTimeEngine.estimateMinutes(article.bodyText)`。記事カード（トップ、一覧、関連記事）にも同じく付ける。
   - `getNewsFeed()` の項目は新しい順のすべての記事。リンクは絶対 URL（CMP-U01 の `toAbsoluteUrl`）。categories には分類のラベルではなくタグを入れる。
 - ビルド中に同じリソースを何度も読まないよう、ResourceAccess の結果をビルドの間だけメモ化してよい。メモ化は ResourceAccess の内部で行い、Manager は気にしない。
 
@@ -490,6 +495,9 @@ image: { src: /images/news/news-section.webp, alt: "……", caption: "……" }
   - 分類のラベルは Client が持つ（`notice` → お知らせ、`work` → 制作、`essay` → 読み物）。
   - 日付は「2026年10月17日」の形で、`<time datetime="2026-10-17">` に入れる。
   - 記事カードの画像は、記事の画像がなければ既定の画像（`/og-default.jpg`）を出す。カードの画像は `alt=""`（見出しがリンクの文字になるため、読み上げを重ねない）、`loading="lazy"`。カード全体を 1 つのリンクにする。
+  - 記事のページのレイアウト（02a §2a.4 SCR-08）：CSS グリッドで、幅 64rem 以上は 2 列（左 `14rem`、右は残り、間は `3rem`）。HTML の順は「見出しの部分（読む時間、h1）→ 左の列（筆者、日付、分類、共有）→ 右の列（画像、本文、下の共有、フォロー、タグ）」とし、スマホではこの順に縦に並べる。PC 幅では、見出しの部分を右の列の上に置き、左の列を見出しの下の行から始める。左の列の項目は横線で区切る。
+  - 読む時間は「◯ 分で読めます」と書く（記事のページは見出しの上、記事カードは日付の横）。
+  - 画像のクレジットは、キャプションの下に「クレジット：{credit}」と書く。
   - 記事のページの画像は `alt` を記事のものにし、`fetchpriority="high"`。画像の枠は 16:9（`aspect-ratio`、`object-fit: cover`）にして、読み込みでレイアウトがずれないようにする。画像がない記事では枠ごと出さない。
   - 共有ボタン（`ShareButtons.astro`）は共有リンクを `ExternalLink.astro` で出す。リンクの読み上げは「{ラベル}で共有」。アイコンの対応は `Icon.astro`（`hatena`、`copy` を足す）。
   - 「リンクをコピー」は `<button hidden data-copy-url="…">` で出し、`copy-link.ts` が、クリップボード API（`navigator.clipboard`）が使えるときだけ `hidden` を外す（JavaScript が無効なときや、API のないブラウザでは表示されない。NFR-10）。押すと `navigator.clipboard.writeText` で URL をコピーし、ボタンの横の `role="status"` に「リンクをコピーしました」と出す。コピーに失敗したときは「コピーできませんでした」と出す。値を HTML として書き込まない（`textContent` を使う。NFR-15）。
@@ -585,7 +593,8 @@ image: { src: /images/news/news-section.webp, alt: "……", caption: "……" }
 │       ├── engines/
 │       │   ├── pricing-engine.ts         CMP-E01
 │       │   ├── curation-engine.ts        CMP-E02
-│       │   └── cta-engine.ts             CMP-E03
+│       │   ├── cta-engine.ts             CMP-E03
+│       │   └── reading-time-engine.ts    CMP-E04
 │       ├── resource-access/
 │       │   ├── content-access/           CMP-A01（index.ts、schemas.ts、astro-source.ts）
 │       │   ├── inquiry-access/           CMP-A02（index.ts、schema.ts、astro-source.ts）
@@ -676,3 +685,29 @@ object-src 'none'
 - 送信先は `https://` に限る（DD-06 の検証規則）。
 - `form-post` のフォームには、人には見えない入力欄（ハニーポット）を置き、受付先で値が入った送信を捨てる。受付先のサービスにスパム対策の機能があれば有効にする。
 - 問い合わせの内容はリポジトリにも CI にも残らない。受付先のサービスだけが持つ。
+
+## 3.17 DD-17 読む時間の見積もり方（ReadingTimeEngine）
+
+`estimateMinutes(text)` は、本文の文字数を、人の平均の読む速さで割って分にする（VOL-12、FR-18）。
+
+### 速さの値と出典
+
+Trauzettel-Klosinski & Dietz (2012) "Standardized Assessment of Reading Performance: The New International Reading Speed Texts IReST", *Investigative Ophthalmology & Visual Science* 53(9): 5452–5461 の表 2 の平均を使う。
+
+| 文字の種類 | 速さ | 出典の条件 |
+| --- | --- | --- |
+| 日本語（漢字・ひらがな・カタカナ） | 357 字/分（SD 56） | 日本語を母語とする 18〜35 歳の 36 人。仮名と漢字の普通の文章 |
+| それ以外の文字（英字・数字など） | 987 字/分（SD 118） | 英語を母語とする 18〜35 歳の 25 人。英語の文章 |
+
+- 出典は、初めて読む文章を**音読**した速さで、文字数は**空白と句読点を除いて**数えている。黙読はふつう音読より速いので、ここで出す時間は長め（控えめ）の目安になる。黙読の値に替えるときは、この Engine の定数だけを変える（VOL-12、TC-R12）。
+- 文字の数え方も出典に合わせる。
+
+### アルゴリズム
+
+1. 空白（`\p{White_Space}`）、句読点（`\p{P}`）、記号（`\p{S}`）を除く。
+2. 残った文字のうち、`\p{Script=Han}`・`\p{Script=Hiragana}`・`\p{Script=Katakana}` と長音符「ー」を日本語の文字として数え、それ以外をその他の文字として数える。サロゲートペアは 1 文字と数える。
+3. 分 = 日本語の文字数 ÷ 357 ＋ その他の文字数 ÷ 987。
+4. 切り上げて整数にする。0 分（本文が空など）のときは 1 分にする（「0 分で読めます」とは書かない）。
+
+- 画像、コード、表の分は足さない（足すときは VOL-12 の変化として扱う）。
+- 入力は文字だけにした本文（`Article.bodyText`）。HTML の形は知らない。
