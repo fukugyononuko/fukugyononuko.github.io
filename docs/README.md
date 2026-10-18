@@ -30,7 +30,7 @@
 
 ## 開発の決まり
 
-振り返り（[フェーズ 0〜3](retrospectives/2026-10-11-phase0-3.md)、[フェーズ 4](retrospectives/2026-10-11-phase4.md)、[フェーズ 5](retrospectives/2026-10-11-phase5.md)、[SNS とカフェ](retrospectives/2026-10-11-sns-cafe.md)、[宇宙の分析](retrospectives/2026-10-11-space.md)、[三体問題シミュレーター](retrospectives/2026-10-11-three-body.md)、[ご意見の反映](retrospectives/2026-10-12-three-body-feedback.md)、[3 次元化](retrospectives/2026-10-12-three-body-3d.md)、[軌跡とフォント](retrospectives/2026-10-12-three-body-trail-fonts.md)、[tensorcheck の設計](https://github.com/fukugyononuko/tensorcheck/blob/main/docs/retrospectives/2026-10-12-design.md)、[tensorcheck の実装](https://github.com/fukugyononuko/tensorcheck/blob/main/docs/retrospectives/2026-10-14-implementation.md)）で決めたこと。
+振り返り（[フェーズ 0〜3](retrospectives/2026-10-11-phase0-3.md)、[フェーズ 4](retrospectives/2026-10-11-phase4.md)、[フェーズ 5](retrospectives/2026-10-11-phase5.md)、[SNS とカフェ](retrospectives/2026-10-11-sns-cafe.md)、[宇宙の分析](retrospectives/2026-10-11-space.md)、[三体問題シミュレーター](retrospectives/2026-10-11-three-body.md)、[ご意見の反映](retrospectives/2026-10-12-three-body-feedback.md)、[3 次元化](retrospectives/2026-10-12-three-body-3d.md)、[軌跡とフォント](retrospectives/2026-10-12-three-body-trail-fonts.md)、[tensorcheck の設計](https://github.com/fukugyononuko/tensorcheck/blob/main/docs/retrospectives/2026-10-12-design.md)、[tensorcheck の実装](https://github.com/fukugyononuko/tensorcheck/blob/main/docs/retrospectives/2026-10-14-implementation.md)、[ニュース欄](retrospectives/2026-10-18-news.md)）で決めたこと。
 
 | # | 決まり | 由来 |
 | --- | --- | --- |
@@ -53,7 +53,11 @@
 | 17 | 性能の要件があるものは、中心のアルゴリズムを実装したフェーズでベンチマークを取る（最後のフェーズに回さない）。設計の段階の試作も、特別な場合ではなく一般の場合の実装で測る | [tensorcheck の実装](https://github.com/fukugyononuko/tensorcheck/blob/main/docs/retrospectives/2026-10-14-implementation.md) T-01 |
 | 18 | The Method の設計では、概要設計と基本設計（内部）で、層をまたいで共有する型（データの契約）の一覧と置き場所を決める。設計した規則（次元の決め方など）は、外部設計の使い方の例に当てはめて成り立つか確かめる | [tensorcheck の実装](https://github.com/fukugyononuko/tensorcheck/blob/main/docs/retrospectives/2026-10-14-implementation.md) T-03 |
 | 19 | ライブラリでは、設計を確かめるためのユースケースとは別に、用途を示す応用の例題（その分野の実際の問題を 1 つ以上、検証した値と図つき）を要件に入れる。README には、そのコードと図を載せる | [tensorcheck の重力の例題](https://github.com/fukugyononuko/tensorcheck/blob/main/docs/retrospectives/2026-10-16-gravity-examples.md) T-02 |
-| 20 | 例題とテストの数値の判定は、わざと誤り（物理の誤り、符号の誤りなど）を入れて失敗することを確かめ、その結果を PR に書く。成分ごとの判定を、打ち消し合いの起こりうる 1 つの量（不定符号の縮約など）の判定で代用しない | [tensorcheck の重力の例題](https://github.com/fukugyononuko/tensorcheck/blob/main/docs/retrospectives/2026-10-16-gravity-examples.md) T-03 |
+| 20 | 例題とテストの数値の判定は、わざと誤り（物理の誤り、符号の誤りなど）を入れて失敗することを確かめ、その結果を PR に書く。成分ごとの判定を、打ち消し合いの起こりうる 1 つの量（不定符号の縮約など）の判定で代用しない。照合や検査のスクリプト（`check:privacy` など）を証拠に使うときも、わざと差を 1 つ入れて検出することを確かめてから結果を使う | [tensorcheck の重力の例題](https://github.com/fukugyononuko/tensorcheck/blob/main/docs/retrospectives/2026-10-16-gravity-examples.md) T-03、[tensorcheck の 2026-10-17 の振り返り](https://github.com/fukugyononuko/tensorcheck/blob/main/docs/retrospectives/2026-10-17-issues-19-36.md) T-02 |
+| 21 | 参考にする見た目（ユーザーが示したページなど）は、HTML の文章ではなく、PC 幅とスマホ幅で描画したスクリーンショットで確かめる。見た目の案（決まり 9）にはそのスクリーンショットを添え、参考と同じところと違うところを書く。完成の確認も、確認用の仮のコンテンツではなく公開する実際のコンテンツで、参考と並べて行う | [news](retrospectives/2026-10-18-news.md) T-01 |
+| 22 | 作業の始めと PR をマージする前に、`gh pr list` で開いている PR（Dependabot を含む）と CI の状態を確かめ、マージの順を決める。CI が失敗している PR はマージせず、issue に登録する | [news](retrospectives/2026-10-18-news.md) T-02 |
+| 23 | 外部の研究の値（速さ、割合など）を定数に使うときは、値を決める前に、測定の条件（方法、対象者、数え方）が使う場面と合うかを原典で確かめる。合わなければ合う出典を探し、見つからなければ決める前にユーザーに確かめる。確かめられない条件は設計書に「未確認」と書く | [news](retrospectives/2026-10-18-news.md) T-03 |
+| 24 | Manager の結合テストでは、変動性を閉じ込めた Engine（規則や定数を持つもの）を、規則を知らない偽物に差し替える。本物の規則に依存した期待値を Manager のテストに持たせない（規則を変えたときの変更を Engine とそのテストに閉じ込めるため） | [news](retrospectives/2026-10-18-news.md) T-04 |
 
 ## ID の規則
 
