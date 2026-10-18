@@ -1,12 +1,11 @@
 // CMP-E04 ReadingTimeEngine / DD-17（VOL-12、FR-18）
-// 本文の文字数を、人の平均の読む速さで割って分にする。
-// 速さは Trauzettel-Klosinski & Dietz (2012), IOVS 53(9) 5452–5461 の表 2 の平均（音読、空白と句読点を除いた文字数）。
+// 本文の文字数を、人の平均の黙読の速さで割って分にする（#41）。出典と条件は DD-17。
 import type { ReadingTimeEngine } from "../contracts";
 
-/** 日本語（漢字・ひらがな・カタカナ）の字/分 */
-const JAPANESE_CHARS_PER_MINUTE = 357;
-/** それ以外の文字（英字・数字など）の字/分（英語の値） */
-const OTHER_CHARS_PER_MINUTE = 987;
+/** 日本語（漢字・ひらがな・カタカナ）の字/分。小林・川嶋 (2018) 映像情報メディア学会誌 72(10) J154 の大学生 200 人の平均 */
+const JAPANESE_CHARS_PER_MINUTE = 653;
+/** それ以外の文字（英字・数字など）の字/分。Brysbaert (2019) JML 109 の英語ノンフィクションの黙読 238 語/分 × 平均語長 4.6 文字 */
+const OTHER_CHARS_PER_MINUTE = 238 * 4.6;
 
 const NOT_COUNTED = /[\p{White_Space}\p{P}\p{S}]/u;
 const JAPANESE = /[\p{Script=Han}\p{Script=Hiragana}\p{Script=Katakana}ー]/u;
