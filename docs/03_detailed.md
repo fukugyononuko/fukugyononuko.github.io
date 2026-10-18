@@ -14,7 +14,7 @@
 | DD-08 | ニュースの記事 | CMP-A04, RES-04 |
 | DD-09 | Manager の実装方針 | CMP-M01, CMP-M02 |
 | DD-10 | Utility | CMP-U01〜U03 |
-| DD-11 | Client（ページとコンポーネント） | CMP-C01 |
+| DD-11 | Client（ページとコンポーネント）と、Markdown の本文の外部リンク | CMP-C01、CMP-A01・CMP-A04（Markdown の変換） |
 | DD-12 | 依存規則の検査 | 01 §1.6 |
 | DD-13 | ビルドとデプロイ | RES-06, EIF-03 |
 | DD-14 | エラー処理 | 全構成要素 |

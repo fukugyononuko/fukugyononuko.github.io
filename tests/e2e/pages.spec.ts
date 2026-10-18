@@ -131,19 +131,21 @@ test("TC-N12：?service= に HTML を含む値を与えても解釈されない"
 test("TC-N13：外部リンクには noopener noreferrer と新しいタブが付き、iframe には sandbox が付く", async ({ page }) => {
   for (const path of ["/", "/about/", "/services/homepage-mock/", "/news/news-section/", "/contact/"]) {
     await page.goto(path);
-    // 外部リンクの定義は実装（src/markdown/external-links.ts）と同じ：http・https で、サイト（と配信元）と別のオリジン
-    const links = await page.locator("a[href]").evaluateAll((as, site) => {
-      const internal = new Set([new URL(site).origin, location.origin]);
-      return as.map((a) => {
-        const url = new URL(a.getAttribute("href")!, location.href);
-        return {
-          href: a.getAttribute("href"),
-          external: (url.protocol === "http:" || url.protocol === "https:") && !internal.has(url.origin),
-          rel: a.getAttribute("rel"),
-          target: a.getAttribute("target"),
-        };
-      });
-    }, SITE);
+    // 外部リンクの定義（DD-11）：href をサイトを基準に解決し、http・https で、サイトのオリジンと違うもの。
+    // 配信元（プレビューのサーバー）のオリジンは内部として扱わない（実装と同じ。PR #47 のレビュー 2 回目）。
+    // 実装の関数を共有すると、定義の誤りをこの検査で見つけられないので、ここでは設計書から独立に書く
+    const links = await page.locator("a[href]").evaluateAll((as, site) =>
+      as.map((a) => {
+        const href = a.getAttribute("href")!;
+        let external = false;
+        try {
+          const url = new URL(href, site);
+          external = (url.protocol === "http:" || url.protocol === "https:") && url.origin !== new URL(site).origin;
+        } catch {
+          external = false;
+        }
+        return { href, external, rel: a.getAttribute("rel"), target: a.getAttribute("target") };
+      }), SITE);
     const external = links.filter((l) => l.external);
     expect(external.length, `${path} に外部リンクがない（検査が空振りしていないか）`).toBeGreaterThan(0);
     for (const l of external) {

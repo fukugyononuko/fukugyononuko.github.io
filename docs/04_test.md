@@ -26,7 +26,7 @@
 | TC-U09 | CMP-U01 Config / CMP-U03 Analytics | ベース URL を設定から読むこと、解析の設定がないときに `null` | DD-10 |
 | TC-U10 | CMP-E02 CurationEngine（`pickRelated`） | 自分自身を除くこと、共通するタグの数の順、同数なら新しい順 → `id` の順、足りないときに新しい記事で補うこと、`limit` で切ること、記事が自分だけのときに空、入力を変更しないこと | DD-04 |
 | TC-U11 | CMP-E04 ReadingTimeEngine | 日本語 653 字でちょうど 1 分・654 字で 2 分、英字 1094 字で 1 分・1095 字で 2 分、混ざった文章で両方の和を切り上げること、空白・句読点・記号を数えないこと、長音符とサロゲートペア（𠮷）を 1 文字の日本語と数えること、空の本文で 1 分。文字を足しても分が減らないこと（単調性） | DD-17 |
-| TC-U12 | Markdown の外部リンクの変換（`src/markdown/external-links.ts`） | 別のオリジンの `http`・`https` のリンクに `target="_blank"`・`rel="noopener noreferrer"`・読み上げの文字を付けること。サイト内のリンク（相対・同じオリジンの絶対 URL）、`mailto:`、`#` だけのリンク、`href` のないリンクを変えないこと | DD-11 |
+| TC-U12 | Markdown の外部リンクの変換（`src/markdown/external-links.ts`） | 外部リンクの判定の境界（プロトコル相対 `//host/`、大文字のスキームとホスト、ポートの有無、`http` と `https` の違い、サイトのホストで始まる別のドメイン）。別のオリジンの `http`・`https` のリンクに `target="_blank"`・`rel="noopener noreferrer"`・読み上げの文字を付けること。サイト内のリンク（相対・同じオリジンの絶対 URL）、`mailto:`、`#` だけのリンク、`href` のないリンクを変えないこと | DD-11 |
 
 ## 4.3 結合テスト（TC-I）
 
