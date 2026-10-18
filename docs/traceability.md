@@ -73,7 +73,7 @@ flowchart LR
 | NFR-13 依存パッケージ | RES-06 | DD-13, DD-16 | TC-N08, TC-N09 |
 | NFR-14 秘密情報 | RES-06 | DD-16 | TC-N08 |
 | NFR-15 注入対策・CSP | C01, M02, A03, U03 / EIF-04, EIF-06 | DD-01, DD-07, DD-11, DD-16 | TC-U06, TC-N11, TC-N12, TC-S13 |
-| NFR-16 外部連携の制限 | C01 / EIF-06 | DD-11, DD-16 | TC-N13, TC-S12 |
+| NFR-16 外部連携の制限 | C01、A01・A04（Markdown の変換）/ EIF-06 | DD-02, DD-08, DD-11, DD-16 | TC-U12, TC-N13, TC-S12 |
 | NFR-17 問い合わせの保護 | C01, A02 / EIF-01 | DD-06, DD-16 | TC-N14 |
 | NFR-18 HTTPS | RES-06 | DD-16 | TC-N08 |
 

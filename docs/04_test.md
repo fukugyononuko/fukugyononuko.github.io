@@ -26,6 +26,7 @@
 | TC-U09 | CMP-U01 Config / CMP-U03 Analytics | ベース URL を設定から読むこと、解析の設定がないときに `null` | DD-10 |
 | TC-U10 | CMP-E02 CurationEngine（`pickRelated`） | 自分自身を除くこと、共通するタグの数の順、同数なら新しい順 → `id` の順、足りないときに新しい記事で補うこと、`limit` で切ること、記事が自分だけのときに空、入力を変更しないこと | DD-04 |
 | TC-U11 | CMP-E04 ReadingTimeEngine | 日本語 653 字でちょうど 1 分・654 字で 2 分、英字 1094 字で 1 分・1095 字で 2 分、混ざった文章で両方の和を切り上げること、空白・句読点・記号を数えないこと、長音符とサロゲートペア（𠮷）を 1 文字の日本語と数えること、空の本文で 1 分。文字を足しても分が減らないこと（単調性） | DD-17 |
+| TC-U12 | Markdown の外部リンクの変換（`src/markdown/external-links.ts`） | 別のオリジンの `http`・`https` のリンクに `target="_blank"`・`rel="noopener noreferrer"`・読み上げの文字を付けること。サイト内のリンク（相対・同じオリジンの絶対 URL）、`mailto:`、`#` だけのリンク、`href` のないリンクを変えないこと | DD-11 |
 
 ## 4.3 結合テスト（TC-I）
 
@@ -74,7 +75,7 @@
 | TC-N10 | ワークフロー内の外部 Action がすべてコミット SHA で固定され、既定の権限が `contents: read` であること（CI でワークフローファイルを検査） | NFR-12 |
 | TC-N11 | 全画面に CSP の `<meta>` があり、ブラウザのコンソールに CSP 違反が出ないこと。問い合わせページだけが外部の `form-action` / `frame-src` を許可していること | NFR-15 |
 | TC-N12 | `?service=` に `<script>` などを含む値を与えても、HTML として解釈されないこと | NFR-15 |
-| TC-N13 | すべての外部リンクに `rel="noopener noreferrer"` が付き、iframe に `sandbox` が付いていること | NFR-16 |
+| TC-N13 | すべての外部リンク（Markdown の本文の外部リンクを含む）に `rel="noopener noreferrer"` と `target="_blank"` が付き、iframe に `sandbox` が付いていること。本文のサイト内のリンクには `target` が付かないこと | NFR-16 |
 | TC-N14 | 問い合わせの送信先が `https://` であること、`form-post` にハニーポット欄があること | NFR-17 |
 | TC-N15 | `public/` と `src/` の画像に GPS などの EXIF 情報がないこと（CI でスクリプトを使って検査） | NFR-06 |
 
