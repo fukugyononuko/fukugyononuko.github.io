@@ -115,6 +115,8 @@ export type ArticleCategory = "notice" | "work" | "essay";
 
 export interface ArticleImage extends ImageRef {
   caption?: string;
+  /** 画像の出典（例：「副業のぬこ」）。表示は「クレジット：…」 */
+  credit?: string;
 }
 
 /** ニュースの記事の要約（一覧用。本文なし） */
@@ -128,6 +130,8 @@ export interface Article extends Taggable {
   /** 更新日（ISO 8601） */
   updated?: string;
   image?: ArticleImage;
+  /** 本文を文字だけにしたもの（タグを除き、文字参照を戻したもの）。読む時間の見積もりに使う（DD-17） */
+  bodyText: string;
 }
 
 /** 本文つきの記事 */

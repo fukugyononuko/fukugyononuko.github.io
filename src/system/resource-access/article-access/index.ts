@@ -64,6 +64,20 @@ function toRecord({ id, data, html }: ArticleEntry, source: ArticleSource): Arti
     updated: data.updated,
     tags: data.tags,
     image: data.image,
+    bodyText: toText(html),
     body: html,
   };
+}
+
+const ENTITIES: Record<string, string> = { amp: "&", lt: "<", gt: ">", quot: '"', apos: "'", nbsp: " " };
+
+/** 本文の HTML からタグを除き、文字参照を文字に戻す（読む時間の見積もり用。DD-08、DD-17） */
+function toText(html: TrustedHtml): string {
+  return html
+    .replace(/<[^>]*>/g, " ")
+    .replace(/&(#x[0-9a-f]+|#\d+|[a-z]+);/gi, (m, ref: string) => {
+      if (ref[0] !== "#") return ENTITIES[ref.toLowerCase()] ?? m;
+      const code = ref[1].toLowerCase() === "x" ? parseInt(ref.slice(2), 16) : Number(ref.slice(1));
+      return String.fromCodePoint(code);
+    });
 }

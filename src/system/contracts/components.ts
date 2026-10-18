@@ -47,6 +47,12 @@ export interface CtaEngine {
   decideForService(service: ServiceRecord): Promise<CallToAction>;
 }
 
+/** CMP-E04 */
+export interface ReadingTimeEngine {
+  /** 文字だけにした本文から、読む時間の目安（1 以上の整数の分）を返す */
+  estimateMinutes(text: string): number;
+}
+
 /** CMP-A01 */
 export interface ContentAccess {
   getOperatorProfile(): Promise<OperatorProfile>;

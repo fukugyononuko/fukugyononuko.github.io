@@ -41,6 +41,7 @@ The Method の 2 つの軸で洗い出した。
 | VOL-09 | アクセス解析 | なし → Cloudflare Web Analytics → 別のサービス | 時間 | CMP-U03 Analytics |
 | VOL-10 | 見た目（デザイン、テーマ、レイアウト） | 配色やフォントの変更、ダーク / ライト、画面幅による違い | 時間、利用者 | CMP-C01 Pages（Client 層） |
 | VOL-11 | ユースケースの手順（何をどの順に見せ、どこへつなぐか） | トップに記事一覧を足す、詳細ページから直接 note へ送る、記事のページにサービスへの誘導を足す | 時間 | CMP-M01 ShowcaseManager / CMP-M02 EngagementManager |
+| VOL-12 | 読む時間の見積もり方 | 速さの値（音読 → 黙読の値）、文字の数え方（日本語と英字の扱い）、画像やコードの分を足す | 時間 | CMP-E04 ReadingTimeEngine |
 
 ### サービスの中身は「変動性」ではなく「データ」
 
@@ -72,6 +73,7 @@ flowchart TB
     E01["CMP-E01 PricingEngine"]
     E02["CMP-E02 CurationEngine"]
     E03["CMP-E03 CtaEngine"]
+    E04["CMP-E04 ReadingTimeEngine"]
   end
   subgraph RA["ResourceAccess"]
     A01["CMP-A01 ContentAccess"]
@@ -97,6 +99,7 @@ flowchart TB
   M01 --> E03
   M02 --> E02
   M02 --> E03
+  M02 --> E04
   M01 --> A01
   M02 --> A02
   M02 --> A03

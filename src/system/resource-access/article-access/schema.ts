@@ -23,6 +23,7 @@ export const newsSchema = z
           .regex(/^\/images\/news\/[a-z0-9-]+\.(webp|jpg|jpeg|png)$/, "画像は public/images/news/ の下の .webp / .jpg / .png にしてください"),
         alt: z.string().min(1, "画像の alt は必須です（NFR-03）"),
         caption: z.string().min(1).optional(),
+        credit: z.string().min(1).max(60).optional(),
       })
       .strict()
       .optional(),

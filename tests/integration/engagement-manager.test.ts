@@ -3,6 +3,7 @@ import { describe, expect, it } from "vitest";
 import { ArticleNotFoundError, createEngagementManager } from "../../src/system/managers/engagement-manager";
 import { createCtaEngine } from "../../src/system/engines/cta-engine";
 import { createCurationEngine } from "../../src/system/engines/curation-engine";
+import { createReadingTimeEngine } from "../../src/system/engines/reading-time-engine";
 import { createSeo } from "../../src/system/utilities/seo";
 import type { ArticleRecord, InquiryChannel } from "../../src/system/contracts";
 import {
@@ -11,7 +12,7 @@ import {
 
 const news: ArticleRecord[] = [
   article({ slug: "newest", date: "2026-10-17", tags: ["site"], image: { src: "/images/news/newest.webp", alt: "説明" } }),
-  article({ slug: "middle", date: "2026-10-10", tags: ["data"] }),
+  article({ slug: "middle", date: "2026-10-10", tags: ["data"], bodyText: "あ".repeat(358) }),
   article({ slug: "older", date: "2026-10-01", tags: ["site"] }),
   article({ slug: "oldest", date: "2026-09-01" }),
 ];
@@ -30,6 +31,7 @@ function manager(channel: InquiryChannel, articles: ArticleRecord[] = news) {
     articles: fakeArticles(articles),
     cta: createCtaEngine(channels, config),
     curation: createCurationEngine(),
+    readingTime: createReadingTimeEngine(),
     seo: createSeo(config),
     config,
   });
@@ -99,6 +101,16 @@ describe("TC-I02 EngagementManager：ニュース（CC-07）", () => {
     const view = await manager(link).getNewsArticleView("newest");
     expect(view.related.map((a) => a.slug)).toEqual(["older", "middle", "oldest"]);
     expect(view.related[0].href).toBe("/news/older/");
+  });
+
+  it("読む時間：記事と、すべての記事カード（トップ、一覧、関連記事）に付く（FR-18）", async () => {
+    const m = manager(link);
+    expect((await m.getNewsArticleView("middle")).readingMinutes).toBe(2);
+    expect((await m.getNewsArticleView("newest")).readingMinutes).toBe(1);
+    const minutes = (cards: { slug: string; readingMinutes: number }[]) => Object.fromEntries(cards.map((c) => [c.slug, c.readingMinutes]));
+    expect(minutes((await m.getNewsIndexView()).articles)).toEqual({ newest: 1, middle: 2, older: 1, oldest: 1 });
+    expect(minutes((await m.getArticleFeedView(2)).articles)).toEqual({ newest: 1, middle: 2 });
+    expect(minutes((await m.getNewsArticleView("newest")).related)).toEqual({ older: 1, middle: 2, oldest: 1 });
   });
 
   it("getNewsArticleView：ない slug は ArticleNotFoundError", async () => {
