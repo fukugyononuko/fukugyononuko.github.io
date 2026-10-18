@@ -70,7 +70,7 @@ flowchart LR
 | NFR-10 JS 非依存 | C01 | DD-11 | TC-S09, TC-S12 |
 | NFR-11 アカウント保護 | （運用） | DD-16 | TC-N08 |
 | NFR-12 公開経路の保護 | RES-06 | DD-13, DD-16 | TC-N08, TC-N10 |
-| NFR-13 依存パッケージ | RES-06 | DD-13, DD-16 | TC-N08, TC-N09 |
+| NFR-13 依存パッケージ | RES-06 | DD-11, DD-13, DD-16 | TC-A02, TC-N08, TC-N09 |
 | NFR-14 秘密情報 | RES-06 | DD-16 | TC-N08 |
 | NFR-15 注入対策・CSP | C01, M02, A03, U03 / EIF-04, EIF-06 | DD-01, DD-07, DD-11, DD-16 | TC-U06, TC-N11, TC-N12, TC-S13 |
 | NFR-16 外部連携の制限 | C01、A01・A04（Markdown の変換）/ EIF-06 | DD-02, DD-08, DD-11, DD-16 | TC-U12, TC-N13, TC-S12 |
@@ -117,10 +117,10 @@ flowchart LR
 | CMP-E02 CurationEngine | FR-02, FR-03, FR-04, FR-09, FR-16 | VOL-04 | CC-01〜CC-03, CC-07 | DD-04 | TC-U02, TC-U10 |
 | CMP-E03 CtaEngine | FR-05, FR-07, FR-14 | VOL-02 | CC-03, CC-04 | DD-05 | TC-U03 |
 | CMP-E04 ReadingTimeEngine | FR-18 | VOL-12 | CC-07 | DD-17 | TC-U11 |
-| CMP-A01 ContentAccess | FR-01〜FR-06, FR-11（筆者）, FR-14、NFR-03 | VOL-05 | CC-01〜CC-04, CC-06, CC-07 | DD-02 | TC-U04 |
+| CMP-A01 ContentAccess | FR-01〜FR-06, FR-11（筆者）, FR-14、NFR-03、NFR-16（Markdown の変換） | VOL-05 | CC-01〜CC-04, CC-06, CC-07 | DD-02, DD-11 | TC-U04, TC-U12, TC-N13 |
 | CMP-A02 InquiryAccess | FR-08, FR-14、NFR-17 | VOL-01 | CC-04 | DD-06 | TC-U05 |
 | CMP-A03 ChannelAccess | FR-07, FR-10, FR-14, FR-15 | VOL-07 | CC-03, CC-05, CC-07 | DD-07 | TC-U06 |
-| CMP-A04 ArticleAccess | FR-11, FR-14, FR-16〜FR-18、NFR-03 | VOL-06 | CC-07 | DD-08 | TC-U07 |
+| CMP-A04 ArticleAccess | FR-11, FR-14, FR-16〜FR-18、NFR-03、NFR-16（Markdown の変換） | VOL-06 | CC-07 | DD-08, DD-11 | TC-U07, TC-U12, TC-N13 |
 | CMP-U01 Config | NFR-04、FR-17 | VOL-08 | 全 CC（Seo 経由）、CC-07 | DD-10 | TC-U09 |
 | CMP-U02 Seo | NFR-04 | — | CC-01〜CC-04, CC-07 | DD-10 | TC-U08 |
 | CMP-U03 Analytics | NFR-15 | VOL-09 | CC-01（レイアウト） | DD-10, DD-16 | TC-U09 |

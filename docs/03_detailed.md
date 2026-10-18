@@ -492,7 +492,7 @@ image: { src: /images/news/news-section.webp, alt: "……", caption: "……", 
 - 外部リンクは共通コンポーネント `ExternalLink.astro` だけで出力し、`target="_blank" rel="noopener noreferrer"` を必ず付ける（NFR-16）。
 - Markdown の本文（プロフィール、サービス、ニュースの記事）の外部リンクには、Markdown を HTML に変えるときに、`src/markdown/external-links.ts`（Sätteri の hast プラグイン。`astro.config.mjs` の `markdown.processor` で設定する）が同じ属性と、`ExternalLink.astro` と同じ読み上げの文字「（新しいタブで開きます）」を付ける（#39）。外部リンクは、`http:`・`https:` でサイトと別のオリジンへのリンクとする。サイト内のリンクと `mailto:` などは変えない。これは CMP-A01・A04 の内部（Markdown の変換）で、`TrustedHtml` を作る前に行う。
   - Astro 7 の標準の Markdown の変換器は Sätteri なので、`markdown.rehypePlugins` は使えない（使うには別の変換器に替える必要がある。決まり 4 で試して確かめた）。
-  - `@astrojs/markdown-satteri` は、Astro が固定している版と同じ版に固定し、Dependabot では `astro` と同じグループで上げる（版が 2 つ入ると、設定したプラグインが Astro の使う変換器に届かないおそれがあるため。決まり 3）。
+  - `@astrojs/markdown-satteri` は、Astro が固定している版と同じ版に固定する（版が 2 つ入ると、設定したプラグインが Astro の使う変換器に届かないおそれがあるため。決まり 3）。Dependabot では `astro` と同じグループにして、両方に新しい版があるときは 1 つの PR で上がるようにする。ただしグループは同時の更新を保証しない（片方だけに新しい版があれば、片方だけの PR が作られる）ので、版の一致とコピーが 1 つであることを TC-A02 で検査し、ずれた PR は CI で失敗させる。
 - Markdown の本文は ContentAccess がビルド時に HTML に変換して渡す（`TrustedHtml`）。Client は `set:html` を `TrustedHtml` にだけ使う（NFR-15）。
 - 制作例の種類ラベルは Client が持つ（`client` → 受託、`personal` → 個人制作、`sample` → サンプル）。ラベルは省略せず、すべての制作例に表示する（FR-03）。
 - 制作例が 0 件ならその欄を出さない。サービスが 0 件なら「準備中です」と問い合わせへの誘導を出す（FR-03、FR-04）。

@@ -40,6 +40,7 @@
 | ID | 確認すること | 設計 |
 | --- | --- | --- |
 | TC-A01 | DD-12 の禁止規則に違反する import が 0 件であること。違反を含むわざと壊したフィクスチャで検査が失敗することも確認する | DD-12、01 §1.6 |
+| TC-A02 | Astro が版を固定している依存（`@astrojs/markdown-satteri`）を直接の依存にも書くとき、版が Astro の固定している版と同じで、Astro の下に別のコピーがないこと | DD-11 |
 
 ## 4.5 総合テスト（TC-S）
 
@@ -75,7 +76,7 @@
 | TC-N10 | ワークフロー内の外部 Action がすべてコミット SHA で固定され、既定の権限が `contents: read` であること（CI でワークフローファイルを検査） | NFR-12 |
 | TC-N11 | 全画面に CSP の `<meta>` があり、ブラウザのコンソールに CSP 違反が出ないこと。問い合わせページだけが外部の `form-action` / `frame-src` を許可していること | NFR-15 |
 | TC-N12 | `?service=` に `<script>` などを含む値を与えても、HTML として解釈されないこと | NFR-15 |
-| TC-N13 | すべての外部リンク（Markdown の本文の外部リンクを含む）に `rel="noopener noreferrer"` と `target="_blank"` が付き、iframe に `sandbox` が付いていること。本文のサイト内のリンクには `target` が付かないこと | NFR-16 |
+| TC-N13 | すべての外部リンク（DD-11 と同じ定義：`http`・`https` で、サイトと別のオリジン。Markdown の本文の外部リンクを含む）に `rel="noopener noreferrer"` と `target="_blank"` が付き、iframe に `sandbox` が付いていること。本文のサイト内のリンクには `target` が付かないこと | NFR-16 |
 | TC-N14 | 問い合わせの送信先が `https://` であること、`form-post` にハニーポット欄があること | NFR-17 |
 | TC-N15 | `public/` と `src/` の画像に GPS などの EXIF 情報がないこと（CI でスクリプトを使って検査） | NFR-06 |
 

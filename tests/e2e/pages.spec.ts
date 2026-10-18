@@ -1,6 +1,8 @@
 // 総合テスト（TC-S）。ビルド済みのサイトを、現在のコンテンツ（RES-01〜03）で検査する。
 import { expect, test } from "@playwright/test";
 
+const SITE = "https://fukugyononuko.github.io";
+
 test.describe("TC-S01：全画面が表示され、画面項目がある", () => {
   test("SCR-01 トップ", async ({ page }) => {
     await page.goto("/");
@@ -126,13 +128,26 @@ test("TC-N12：?service= に HTML を含む値を与えても解釈されない"
   expect(await page.locator("img[src='x']").count()).toBe(0);
 });
 
-test("TC-N13：外部リンクには noopener noreferrer が付き、iframe には sandbox が付く", async ({ page }) => {
+test("TC-N13：外部リンクには noopener noreferrer と新しいタブが付き、iframe には sandbox が付く", async ({ page }) => {
   for (const path of ["/", "/about/", "/services/homepage-mock/", "/news/news-section/", "/contact/"]) {
     await page.goto(path);
-    const external = page.locator("a[href^='http']");
-    const n = await external.count();
-    for (let i = 0; i < n; i++) {
-      await expect(external.nth(i)).toHaveAttribute("rel", "noopener noreferrer");
+    // 外部リンクの定義は実装（src/markdown/external-links.ts）と同じ：http・https で、サイト（と配信元）と別のオリジン
+    const links = await page.locator("a[href]").evaluateAll((as, site) => {
+      const internal = new Set([new URL(site).origin, location.origin]);
+      return as.map((a) => {
+        const url = new URL(a.getAttribute("href")!, location.href);
+        return {
+          href: a.getAttribute("href"),
+          external: (url.protocol === "http:" || url.protocol === "https:") && !internal.has(url.origin),
+          rel: a.getAttribute("rel"),
+          target: a.getAttribute("target"),
+        };
+      });
+    }, SITE);
+    const external = links.filter((l) => l.external);
+    expect(external.length, `${path} に外部リンクがない（検査が空振りしていないか）`).toBeGreaterThan(0);
+    for (const l of external) {
+      expect({ href: l.href, rel: l.rel, target: l.target }).toEqual({ href: l.href, rel: "noopener noreferrer", target: "_blank" });
     }
     const frames = page.locator("iframe");
     for (let i = 0; i < (await frames.count()); i++) {

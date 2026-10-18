@@ -8,7 +8,8 @@ updates:
     groups:
       dev-dependencies:
         dependency-type: development
-      # astro は @astrojs/markdown-satteri を版で固定している。こちらも同じ版に固定しているので、必ず同時に上げる（DD-11、#39）
+      # astro は @astrojs/markdown-satteri を版で固定していて、こちらも同じ版に固定している（DD-11、#39）。
+      # 両方に新しい版があれば 1 つの PR にまとめる。グループは同時の更新を保証しないので、版がずれた PR は TC-A02 で失敗させる
       astro:
         patterns: ["astro", "@astrojs/markdown-satteri"]
     ignore:
