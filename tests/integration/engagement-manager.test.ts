@@ -3,18 +3,20 @@ import { describe, expect, it } from "vitest";
 import { ArticleNotFoundError, createEngagementManager } from "../../src/system/managers/engagement-manager";
 import { createCtaEngine } from "../../src/system/engines/cta-engine";
 import { createCurationEngine } from "../../src/system/engines/curation-engine";
-import { createReadingTimeEngine } from "../../src/system/engines/reading-time-engine";
 import { createSeo } from "../../src/system/utilities/seo";
-import type { ArticleRecord, InquiryChannel } from "../../src/system/contracts";
+import type { ArticleRecord, InquiryChannel, ReadingTimeEngine } from "../../src/system/contracts";
 import {
   article, config, fakeArticles, fakeChannels, fakeContent, fakeInquiry, github, note, profile, service,
 } from "../support/fakes";
 
+/** Manager の手順だけを確かめるため、見積もりの規則（DD-17）に依存しない偽物：本文の文字数をそのまま分とする */
+const fakeReadingTime: ReadingTimeEngine = { estimateMinutes: (text) => [...text].length };
+
 const news: ArticleRecord[] = [
-  article({ slug: "newest", date: "2026-10-17", tags: ["site"], image: { src: "/images/news/newest.webp", alt: "説明" } }),
-  article({ slug: "middle", date: "2026-10-10", tags: ["data"], bodyText: "あ".repeat(358) }),
-  article({ slug: "older", date: "2026-10-01", tags: ["site"] }),
-  article({ slug: "oldest", date: "2026-09-01" }),
+  article({ slug: "newest", date: "2026-10-17", tags: ["site"], bodyText: "あ", image: { src: "/images/news/newest.webp", alt: "説明" } }),
+  article({ slug: "middle", date: "2026-10-10", tags: ["data"], bodyText: "ああ" }),
+  article({ slug: "older", date: "2026-10-01", tags: ["site"], bodyText: "あ" }),
+  article({ slug: "oldest", date: "2026-09-01", bodyText: "あ" }),
 ];
 
 function manager(channel: InquiryChannel, articles: ArticleRecord[] = news) {
@@ -31,7 +33,7 @@ function manager(channel: InquiryChannel, articles: ArticleRecord[] = news) {
     articles: fakeArticles(articles),
     cta: createCtaEngine(channels, config),
     curation: createCurationEngine(),
-    readingTime: createReadingTimeEngine(),
+    readingTime: fakeReadingTime,
     seo: createSeo(config),
     config,
   });
