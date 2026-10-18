@@ -20,4 +20,4 @@ image:
 
 記事は、X・Threads・はてなブックマークで共有できます。新しい記事は [RSS](/news/rss.xml) でも受け取れます。
 
-note でも記事を書いています。よろしければ、フォローしてください。
+[note](https://note.com/fukugyo_no_nuko) でも記事を書いています。よろしければ、フォローしてください。
