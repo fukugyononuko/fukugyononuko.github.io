@@ -35,6 +35,8 @@ test.describe("TC-S01：SCR-07、SCR-08 の画面項目", () => {
     await expect(page.locator(".author")).toContainText("副業のぬこ");
     await expect(page.locator('meta[property="og:type"]')).toHaveAttribute("content", "article");
     await expect(page.locator(".body p").first()).not.toBeEmpty();
+    await expect(page.locator(".hero img")).toHaveAttribute("alt", /.+/);
+    await expect(page.locator(".hero .credit")).toHaveText("クレジット：副業のぬこ");
     await expect(page.getByRole("link", { name: "ニュースの一覧へ" })).toBeVisible();
   });
 });
@@ -57,8 +59,11 @@ test("TC-S11：ナビゲーション → 一覧 → 記事。トップの最新�
 
   await page.goto(ARTICLE);
   await expect(page.locator(".head .reading")).toHaveText(/^\d+ 分で読めます$/);
-  // HTML の順（スマホの並び）。画像のない記事なので .hero はない。関連記事は記事が 1 件のうちは出ない
-  const order = await domOrder(page, [".reading", "h1", ".side .author", ".side time", ".side .category", ".side [data-share]", ".body", ".foot [data-share]", ".follow", ".tags"]);
+  // HTML の順（スマホの並び）。関連記事は記事が 1 件のうちは出ない
+  const order = await domOrder(page, [
+    ".reading", "h1", ".side .author", ".side time", ".side .category", ".side [data-share]",
+    ".hero img", ".hero .caption", ".hero .credit", ".body", ".foot [data-share]", ".follow", ".tags",
+  ]);
   expect(order.every((n) => n > -1), `見つからない項目がある：${order}`).toBe(true);
   expect(order).toEqual([...order].sort((a, b) => a - b));
 });

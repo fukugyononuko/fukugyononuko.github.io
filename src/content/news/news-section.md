@@ -4,6 +4,11 @@ summary: "近況のお知らせや、新しく作ったものの紹介を、こ�
 category: notice
 date: 2026-10-18
 tags: ["このサイト"]
+image:
+  src: /images/news/news-section.jpg
+  alt: "ニュース一覧の画面。見出し「ニュース」の下に、この記事のカードが 1 枚並んでいる"
+  caption: "ニュース欄の画面"
+  credit: "副業のぬこ"
 ---
 副業のぬこのホームページに、ニュース欄を作りました。
 
