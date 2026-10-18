@@ -8,7 +8,7 @@
   },
   "scripts": {
     "dev": "astro dev",
-    "build": "astro build && node scripts/subset-heading-font.mjs",
+    "build": "astro build --force && node scripts/subset-heading-font.mjs",
     "preview": "astro preview",
     "lint": "astro check",
     "depcruise": "depcruise src --config .dependency-cruiser.cjs && node scripts/check-astro-imports.mjs",

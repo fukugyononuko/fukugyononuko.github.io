@@ -269,7 +269,7 @@ Astro の Content Collections（`src/content.config.ts`）で zod スキーマ�
 | draft | `true` のものは `listOfferedServices` と `listWorks` に含めない |
 | 画像 | `avatar.alt` は必須（NFR-03） |
 | 文字数 | `summary` は 120 字以内、`title` は 40 字以内（description や OGP に使うため） |
-| 本文のリンク | Markdown の書き方（`[文字](URL)`）で書く。HTML の `<a>` を直接書かない（外部リンクに属性を付ける変換が届かないため。DD-11、#39） |
+| 本文のリンク | Markdown の書き方（`[文字](URL)`）で書く。HTML の `<a>` を直接書かない（外部リンクに属性を付ける変換が届かないため。DD-11、#39）。書いたら、ファイル名を示してビルドを失敗させる（`RawAnchorError`。仕組みは DD-11） |
 
 違反があれば `astro build` が失敗する（FR-14、DD-14）。
 
@@ -434,7 +434,7 @@ image: { src: /images/news/news-section.webp, alt: "……", caption: "……", 
 | tags | 0〜5 個。1 つ 1〜20 字。重複は不可 |
 | image | 任意。`src` は `/images/news/` の下の `.webp` / `.jpg` / `.png`。`alt` は必須（NFR-03）。`caption` と `credit` は任意。ファイルが `public/` にないときはビルド失敗 |
 | draft | `true` のものはどの操作も返さない（ページも RSS も作らない） |
-| 本文のリンク | DD-02 と同じく、Markdown の書き方で書く |
+| 本文のリンク | DD-02 と同じく、Markdown の書き方で書く。HTML の `<a>` を書いたらビルド失敗 |
 
 ### 操作
 
@@ -492,6 +492,8 @@ image: { src: /images/news/news-section.webp, alt: "……", caption: "……", 
 - 外部リンクは共通コンポーネント `ExternalLink.astro` だけで出力し、`target="_blank" rel="noopener noreferrer"` を必ず付ける（NFR-16）。
 - Markdown の本文（プロフィール、サービス、ニュースの記事）の外部リンクには、Markdown を HTML に変えるときに、`src/markdown/external-links.ts`（Sätteri の hast プラグイン。`astro.config.mjs` の `markdown.processor` で設定する）が同じ属性と、`ExternalLink.astro` と同じ読み上げの文字「（新しいタブで開きます）」を付ける（#39）。外部リンクは、`http:`・`https:` でサイトと別のオリジンへのリンクとする。サイト内のリンクと `mailto:` などは変えない。これは CMP-A01・A04 の内部（Markdown の変換）で、`TrustedHtml` を作る前に行う。
   - Astro 7 の標準の Markdown の変換器は Sätteri なので、`markdown.rehypePlugins` は使えない（使うには別の変換器に替える必要がある。決まり 4 で試して確かめた）。
+  - 本文に HTML の `<a>` を直接書くと、Sätteri はそれを `raw` の節として渡すので、属性を付けられない。そこで、同じプラグインが `raw` の節に `<a ` または `<a>` があれば違反として記録し、`externalLinks()` が返す integration が `astro:build:done` でビルドを失敗させる（`RawAnchorError`、ファイル名つき。DD-02）。プラグインの中で例外を出しても、Content Collections の読み込みはログに出すだけでビルドを止めない（本文が欠けたまま公開されるおそれがある）ため、この形にした。
+  - Content Collections は変換の結果をキャッシュし、変わっていない本文ではプラグインを呼ばない。そのため `npm run build` は `astro build --force` でキャッシュを使わずにビルドし、手元でも CI と同じく毎回検査する（DD-13）。
   - `@astrojs/markdown-satteri` は、Astro が固定している版と同じ版に固定する（版が 2 つ入ると、設定したプラグインが Astro の使う変換器に届かないおそれがあるため。決まり 3）。Dependabot では `astro` と同じグループにして、両方に新しい版があるときは 1 つの PR で上がるようにする。ただしグループは同時の更新を保証しない（片方だけに新しい版があれば、片方だけの PR が作られる）ので、版の一致とコピーが 1 つであることを TC-A02 で検査し、ずれた PR は CI で失敗させる。
 - Markdown の本文は ContentAccess がビルド時に HTML に変換して渡す（`TrustedHtml`）。Client は `set:html` を `TrustedHtml` にだけ使う（NFR-15）。
 - 制作例の種類ラベルは Client が持つ（`client` → 受託、`personal` → 個人制作、`sample` → サンプル）。ラベルは省略せず、すべての制作例に表示する（FR-03）。
@@ -538,7 +540,7 @@ image: { src: /images/news/news-section.webp, alt: "……", caption: "……", 
 | ジョブ | きっかけ | 手順 |
 | --- | --- | --- |
 | `check` | すべての push と PR | `npm ci` → `npm audit --audit-level=high`（TC-N09）→ `npm run check:workflows`（TC-N10）→ `npm run check:images`（TC-N15）→ `npm run check:privacy`（TC-N06）→ `npm run lint`（`astro check` による型検査）→ `npm run depcruise`（TC-A01）→ `npm test`（TC-U、TC-I、TC-A01） |
-| `build` | `check` の成功後 | `npm run build`（スキーマ検証を含む）→ `npm run test:e2e`（TC-S、TC-N の自動検査）→ `npm run test:lighthouse`（TC-N01）→ `actions/upload-pages-artifact` |
+| `build` | `check` の成功後 | `npm run build`（`astro build --force`。スキーマ検証と、本文の HTML の `<a>` の検査を含む。DD-11）→ `npm run test:e2e`（TC-S、TC-N の自動検査）→ `npm run test:lighthouse`（TC-N01）→ `actions/upload-pages-artifact` |
 | `deploy` | `main` で `build` の成功後 | `actions/deploy-pages` |
 
 - Node.js のバージョンは `.nvmrc` で固定する。
@@ -553,6 +555,7 @@ image: { src: /images/news/news-section.webp, alt: "……", caption: "……", 
 | コンテンツのスキーマ違反 | CMP-A01（Astro の Content Collections） | ビルド失敗。ファイル名と項目を表示する（FR-14） |
 | `InvalidInquiryConfigError` | CMP-A02 | ビルド失敗 |
 | チャネル設定の不正 | CMP-A03 | ビルド失敗 |
+| `RawAnchorError` | Markdown の変換（CMP-A01・A04 の内部、DD-11） | ビルド失敗。HTML の `<a>` を書いたファイルを表示する |
 | `UnknownChannelError` | CMP-E03 | ビルド失敗。サービスの slug と channelId を表示する |
 | `ServiceNotFoundError` | CMP-M01 | ビルド失敗 |
 | 記事のスキーマ違反、画像のファイルがない | CMP-A04（Astro の Content Collections と `astro-source.ts`） | ビルド失敗。ファイル名と項目を表示する（FR-14） |

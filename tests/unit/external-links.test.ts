@@ -1,6 +1,6 @@
 // TC-U12 Markdown の本文の外部リンク（DD-11、NFR-16、#39）
 import { describe, expect, it } from "vitest";
-import { externalLinks, isExternalHref, NEW_TAB_NOTE } from "../../src/markdown/external-links";
+import { externalLinks, isExternalHref, NEW_TAB_NOTE, RawAnchorError } from "../../src/markdown/external-links";
 
 const SITE = "https://fukugyononuko.github.io";
 
@@ -13,9 +13,9 @@ function run(href: unknown) {
     setProperty: (_n: unknown, key: string, value: unknown) => { props[key] = value; },
     appendChild: (_n: unknown, child: unknown) => { appended.push(child); },
   };
-  const plugin = externalLinks(SITE);
-  expect(plugin.element.filter).toEqual(["a"]);
-  plugin.element.visit(node, ctx);
+  const { hastPlugin } = externalLinks(SITE);
+  expect(hastPlugin.element.filter).toEqual(["a"]);
+  hastPlugin.element.visit(node, ctx);
   return { props, appended };
 }
 
@@ -64,4 +64,37 @@ describe("TC-U12 externalLinks（Sätteri の hast プラグイン）", () => {
       expect(run(href)).toEqual({ props: {}, appended: [] });
     },
   );
+});
+
+describe("TC-U12 externalLinks：本文に HTML の <a> を直接書くとビルドを失敗させる（DD-02、DD-08）", () => {
+  const ctx = { fileURL: new URL("file:///repo/src/content/news/a.md") };
+  const buildDone = (links: ReturnType<typeof externalLinks>) => links.integration.hooks["astro:build:done"]();
+
+  it.each([
+    '<a href="https://example.com/">',
+    '<A HREF="https://example.com/">',
+    '<p><a href="https://example.com/">ブロック</a></p>',
+    "<a>",
+    '<a\nhref="/x">',
+  ])("%s を記録し、ビルドの最後に RawAnchorError（ファイル名つき）", (value) => {
+    const links = externalLinks(SITE);
+    links.hastPlugin.raw({ value }, ctx);
+    expect([...links.violations]).toEqual(["/repo/src/content/news/a.md"]);
+    expect(() => buildDone(links)).toThrow(RawAnchorError);
+    expect(() => buildDone(links)).toThrow(/a\.md/);
+  });
+
+  it.each(["<abbr title=\"x\">x</abbr>", "<br>", "</a>", "<!-- a -->", "<aside>"])("%s は記録せず、ビルドを止めない", (value) => {
+    const links = externalLinks(SITE);
+    links.hastPlugin.raw({ value }, ctx);
+    expect(links.violations.size).toBe(0);
+    expect(() => buildDone(links)).not.toThrow();
+  });
+
+  it("違反したファイルが複数なら、すべてをエラーに書く", () => {
+    const links = externalLinks(SITE);
+    links.hastPlugin.raw({ value: "<a>" }, { fileURL: new URL("file:///repo/a.md") });
+    links.hastPlugin.raw({ value: "<a>" }, { fileURL: new URL("file:///repo/b.md") });
+    expect(() => buildDone(links)).toThrow(/a\.md、\/repo\/b\.md/);
+  });
 });
