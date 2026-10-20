@@ -76,6 +76,9 @@ describe("TC-U12 externalLinks：本文に HTML の <a> を直接書くとビル
     '<p><a href="https://example.com/">ブロック</a></p>',
     "<a>",
     '<a\nhref="/x">',
+    "<a/>",
+    '<a\thref="/x">',
+    '<!-- メモ --><a href="https://example.com/">コメントのあと</a>',
   ])("%s を記録し、ビルドの最後に RawAnchorError（ファイル名つき）", (value) => {
     const links = externalLinks(SITE);
     links.hastPlugin.raw({ value }, ctx);
@@ -84,7 +87,16 @@ describe("TC-U12 externalLinks：本文に HTML の <a> を直接書くとビル
     expect(() => buildDone(links)).toThrow(/a\.md/);
   });
 
-  it.each(["<abbr title=\"x\">x</abbr>", "<br>", "</a>", "<!-- a -->", "<aside>"])("%s は記録せず、ビルドを止めない", (value) => {
+  it.each([
+    '<abbr title="x">x</abbr>',
+    "<br>",
+    "</a>",
+    "<!-- a -->",
+    "<aside>",
+    "<abbr/>",
+    '<!-- <a href="https://example.com/"> -->',
+    '<!--\n<a href="https://example.com/">\n-->',
+  ])("%s は記録せず、ビルドを止めない", (value) => {
     const links = externalLinks(SITE);
     links.hastPlugin.raw({ value }, ctx);
     expect(links.violations.size).toBe(0);

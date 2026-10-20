@@ -25,8 +25,15 @@ export class RawAnchorError extends Error {
   }
 }
 
-/** HTML の開始タグ <a ...> または <a>（<abbr> や <aside> は含まない） */
-const RAW_ANCHOR = /<a[\s>]/i;
+/** HTML の開始タグ <a ...>・<a>・<a/>（<abbr> や <aside> は含まない） */
+const RAW_ANCHOR = /<a[\s/>]/i;
+/** HTML のコメント（閉じていないものは最後まで）。コメントの中の <a> は表示されないので調べない */
+const HTML_COMMENT = /<!--[\s\S]*?(?:-->|$)/g;
+
+/** raw の HTML が、表示されたときに <a> 要素になるか */
+export function hasRawAnchor(html: string): boolean {
+  return RAW_ANCHOR.test(html.replace(HTML_COMMENT, ""));
+}
 
 /** http・https で、サイトと別のオリジンへのリンクか */
 export function isExternalHref(href: unknown, site: string): boolean {
@@ -47,7 +54,7 @@ export function externalLinks(site: string) {
   const hastPlugin = {
     name: "external-links",
     raw(node: { value: string }, ctx: { fileURL?: URL }) {
-      if (RAW_ANCHOR.test(node.value)) violations.add(ctx.fileURL?.pathname ?? "Markdown の本文");
+      if (hasRawAnchor(node.value)) violations.add(ctx.fileURL?.pathname ?? "Markdown の本文");
     },
     element: {
       filter: ["a"],
