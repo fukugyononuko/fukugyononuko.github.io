@@ -79,6 +79,10 @@ describe("TC-U12 externalLinks：本文に HTML の <a> を直接書くとビル
     "<a/>",
     '<a\thref="/x">',
     '<!-- メモ --><a href="https://example.com/">コメントのあと</a>',
+    '<!--><a href="https://example.com/">空のコメントのあと</a>',
+    '<!---><a href="https://example.com/">空のコメントのあと</a>',
+    '<!-- <a> --!><a href="https://example.com/">--!> で閉じたコメントのあと</a>',
+    '<div><span><a href="/x">入れ子</a></span></div>',
   ])("%s を記録し、ビルドの最後に RawAnchorError（ファイル名つき）", (value) => {
     const links = externalLinks(SITE);
     links.hastPlugin.raw({ value }, ctx);
@@ -96,6 +100,9 @@ describe("TC-U12 externalLinks：本文に HTML の <a> を直接書くとビル
     "<abbr/>",
     '<!-- <a href="https://example.com/"> -->',
     '<!--\n<a href="https://example.com/">\n-->',
+    '<!-- 閉じていないコメント <a href="https://example.com/">',
+    '<p>&lt;a href="https://example.com/"&gt;</p>',
+    "<textarea><a></textarea>",
   ])("%s は記録せず、ビルドを止めない", (value) => {
     const links = externalLinks(SITE);
     links.hastPlugin.raw({ value }, ctx);
