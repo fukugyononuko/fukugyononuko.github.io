@@ -14,7 +14,7 @@
 | DD-08 | ニュースの記事 | CMP-A04, RES-04 |
 | DD-09 | Manager の実装方針 | CMP-M01, CMP-M02 |
 | DD-10 | Utility | CMP-U01〜U03 |
-| DD-11 | Client（ページとコンポーネント） | CMP-C01 |
+| DD-11 | Client（ページとコンポーネント）と、Markdown の本文の外部リンク | CMP-C01、CMP-A01・CMP-A04（Markdown の変換） |
 | DD-12 | 依存規則の検査 | 01 §1.6 |
 | DD-13 | ビルドとデプロイ | RES-06, EIF-03 |
 | DD-14 | エラー処理 | 全構成要素 |
@@ -269,6 +269,7 @@ Astro の Content Collections（`src/content.config.ts`）で zod スキーマ�
 | draft | `true` のものは `listOfferedServices` と `listWorks` に含めない |
 | 画像 | `avatar.alt` は必須（NFR-03） |
 | 文字数 | `summary` は 120 字以内、`title` は 40 字以内（description や OGP に使うため） |
+| 本文のリンク | Markdown の書き方（`[文字](URL)`）で書く。HTML の `<a>` を直接書かない（外部リンクに属性を付ける変換が届かないため。DD-11、#39）。書くと、外部リンクなら属性のないまま出力され、ビルドしたすべてのページを確かめる TC-N13 で CI が失敗し、公開されない |
 
 違反があれば `astro build` が失敗する（FR-14、DD-14）。
 
@@ -433,6 +434,7 @@ image: { src: /images/news/news-section.webp, alt: "……", caption: "……", 
 | tags | 0〜5 個。1 つ 1〜20 字。重複は不可 |
 | image | 任意。`src` は `/images/news/` の下の `.webp` / `.jpg` / `.png`。`alt` は必須（NFR-03）。`caption` と `credit` は任意。ファイルが `public/` にないときはビルド失敗 |
 | draft | `true` のものはどの操作も返さない（ページも RSS も作らない） |
+| 本文のリンク | DD-02 と同じく、Markdown の書き方で書く |
 
 ### 操作
 
@@ -488,6 +490,10 @@ image: { src: /images/news/news-section.webp, alt: "……", caption: "……", 
 - スタイルは `src/styles/tokens.css`（色・余白・文字の CSS 変数）、`src/styles/global.css`（全体の基本）、各コンポーネントの scoped CSS。ダークモードは `prefers-color-scheme` で CSS 変数を切り替える（NFR-05）。値と部品の一覧は 02a §2a.7。
 - 閲覧時の JavaScript は `contact-prefill.ts` と `copy-link.ts` だけ（NFR-10）。`?service=` の値が `serviceOptions` にあるときだけ選択欄に反映する。値を HTML として書き込まない（NFR-15）。
 - 外部リンクは共通コンポーネント `ExternalLink.astro` だけで出力し、`target="_blank" rel="noopener noreferrer"` を必ず付ける（NFR-16）。
+- Markdown の本文（プロフィール、サービス、ニュースの記事）の外部リンクには、Markdown を HTML に変えるときに、`src/markdown/external-links.ts`（Sätteri の hast プラグイン。`astro.config.mjs` の `markdown.processor` で設定する）が同じ属性と、`ExternalLink.astro` と同じ読み上げの文字「（新しいタブで開きます）」を付ける（#39）。外部リンクは、`http:`・`https:` でサイトと別のオリジンへのリンクとする。サイト内のリンクと `mailto:` などは変えない。これは CMP-A01・A04 の内部（Markdown の変換）で、`TrustedHtml` を作る前に行う。
+  - Astro 7 の標準の Markdown の変換器は Sätteri なので、`markdown.rehypePlugins` は使えない（使うには別の変換器に替える必要がある。決まり 4 で試して確かめた）。
+  - 本文に HTML の `<a>` を直接書くと、Sätteri はそれを `raw` の節として渡すので、属性を付けられない。これは入力では止めず、出力の側で止める：TC-N13 が、ビルドで生成されたすべてのページを、ブラウザが解析したとおりに調べ、すべての外部リンクに属性があることを確かめる（CI の `build` で、公開の前に動く。DD-13）。入力の `raw` の断片を調べる方法（正規表現、断片ごとの HTML の解析）は、コメントの閉じ方や `<textarea>` の中など、前後の文脈を含む HTML の規則を取りこぼしたので採らない（PR #47 のレビュー 4〜6 回目）。
+  - `@astrojs/markdown-satteri` は、Astro が固定している版と同じ版に固定する（版が 2 つ入ると、設定したプラグインが Astro の使う変換器に届かないおそれがあるため）。最新の版ではないので、決まり 3 に従い Dependabot では ignore にし、理由を `dependabot.yml` に書く。Astro を上げる PR で版がずれると TC-A02 が失敗するので、その PR で同じ版に手で合わせる。
 - Markdown の本文は ContentAccess がビルド時に HTML に変換して渡す（`TrustedHtml`）。Client は `set:html` を `TrustedHtml` にだけ使う（NFR-15）。
 - 制作例の種類ラベルは Client が持つ（`client` → 受託、`personal` → 個人制作、`sample` → サンプル）。ラベルは省略せず、すべての制作例に表示する（FR-03）。
 - 制作例が 0 件ならその欄を出さない。サービスが 0 件なら「準備中です」と問い合わせへの誘導を出す（FR-03、FR-04）。
@@ -563,7 +569,7 @@ image: { src: /images/news/news-section.webp, alt: "……", caption: "……", 
 ```
 .
 ├── .github/workflows/deploy.yml          DD-13
-├── .github/dependabot.yml                DD-16（npm と github-actions）
+├── .github/dependabot.yml                DD-16（npm と github-actions。@astrojs/markdown-satteri は ignore。DD-11）
 ├── .dependency-cruiser.cjs               DD-12
 ├── .nvmrc
 ├── assets/fonts/                         見出しフォントの元（Zen Maru Gothic Bold、OFL）。ビルド時にサブセット化する
@@ -573,6 +579,7 @@ image: { src: /images/news/news-section.webp, alt: "……", caption: "……", 
 ├── scripts/                              check-astro-imports.mjs（DD-12）、check-workflows.mjs（TC-N10）、check-image-metadata.mjs（TC-N15）、check-privacy.mjs（TC-N06）、lighthouse.mjs（TC-N01）、subset-heading-font.mjs（見出しフォントのサブセット化）
 ├── src/
 │   ├── content.config.ts                 DD-02（CMP-A01 の内部）
+│   ├── markdown/external-links.ts        DD-11（CMP-A01・A04 の内部：本文の外部リンクの属性。astro.config.mjs から使う）
 │   ├── content/                          RES-01〜03
 │   │   ├── profile.md
 │   │   ├── skills.yaml
@@ -630,7 +637,7 @@ image: { src: /images/news/news-section.webp, alt: "……", caption: "……", 
 | 依存パッケージの脆弱性や乗っ取り | ビルド時に悪意あるコードが動く、出力に混入する | ロックファイルと `npm ci`、Dependabot、`npm audit` | NFR-13 |
 | 秘密情報の誤コミット | トークンなどの漏えい | 秘密情報を置かない設計（問い合わせ先の ID は公開されても困らない値だけ）、secret scanning と push protection | NFR-14 |
 | スクリプトの注入（XSS） | 訪問者のブラウザで不正な処理が動く | 外部データはエスケープして出力、CSP | NFR-15 |
-| 外部リンクや埋め込みの悪用 | 遷移先からの元ページの操作、リファラーからの情報漏れ | `noopener noreferrer`、iframe の `sandbox`、外部スクリプトの許可リスト | NFR-16 |
+| 外部リンクや埋め込みの悪用 | 遷移先からの元ページの操作、リファラーからの情報漏れ | `noopener noreferrer`（部品の外部リンクと、Markdown の本文の外部リンクの両方。DD-11）、iframe の `sandbox`、外部スクリプトの許可リスト | NFR-16 |
 | 共有ボタンからの追跡 | 共有先のスクリプトが訪問者を追跡する、CSP を緩める必要が出る | 共有先のスクリプトやボタンの画像を読み込まず、共有用 URL へのリンクだけにする（EIF-06）。CSP は変えない | NFR-15, NFR-16 |
 | 問い合わせのスパム、内容の漏えい | 受付先があふれる、個人情報の漏えい | HTTPS、受付先のスパム対策＋ハニーポット欄、サイトに保存しない | NFR-17 |
 | 通信の盗聴・改ざん | 表示内容のすり替え | HTTPS の強制 | NFR-18 |

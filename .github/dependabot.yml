@@ -12,6 +12,9 @@ updates:
       # @astrojs/check の peerDependencies が typescript ^5 || ^6 のため。対応したら外す。
       - dependency-name: typescript
         update-types: ["version-update:semver-major"]
+      # astro が版を固定している（7.3.8 は 0.4.3）。最新（0.4.4）ではなく astro と同じ版に固定し、手で合わせる（DD-11、#39）。
+      # astro を上げる PR で版がずれると TC-A02 が失敗するので、その PR で同じ版に直す
+      - dependency-name: "@astrojs/markdown-satteri"
   - package-ecosystem: github-actions
     directory: /
     schedule:

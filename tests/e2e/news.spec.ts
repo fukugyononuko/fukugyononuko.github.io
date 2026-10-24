@@ -126,6 +126,17 @@ test("TC-S12：共有リンクとフォローのリンク、リンクのコピ�
   expect(await page.evaluate(() => navigator.clipboard.readText())).toBe(CANONICAL);
 });
 
+test("TC-N13：記事の本文の外部リンクは新しいタブで開き、サイト内のリンクは変えない（#39）", async ({ page }) => {
+  await page.goto(ARTICLE);
+  const external = page.locator('article .body a[href="https://note.com/fukugyo_no_nuko"]');
+  await expect(external).toHaveAttribute("target", "_blank");
+  await expect(external).toHaveAttribute("rel", "noopener noreferrer");
+  await expect(external.locator(".visually-hidden")).toHaveText("（新しいタブで開きます）");
+  const internal = page.locator('article .body a[href="/news/rss.xml"]');
+  await expect(internal).not.toHaveAttribute("target", /.*/);
+  await expect(internal).not.toHaveAttribute("rel", /.*/);
+});
+
 test("TC-S13：RSS が XML として読め、全画面の head に RSS のリンクがある", async ({ page, request }) => {
   const response = await request.get("/news/rss.xml");
   expect(response.status()).toBe(200);

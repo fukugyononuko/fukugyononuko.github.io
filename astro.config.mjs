@@ -1,14 +1,23 @@
 // CMP-U01 Config の値の元（DD-10）。公開先を変えるときは site と base だけを変える（VOL-08）。
 import { defineConfig } from "astro/config";
 import sitemap from "@astrojs/sitemap";
+import { satteri } from "@astrojs/markdown-satteri";
+import { externalLinks } from "./src/markdown/external-links.ts";
+
+const SITE = "https://fukugyononuko.github.io";
 
 export default defineConfig({
-  site: "https://fukugyononuko.github.io",
+  site: SITE,
   base: "/",
   trailingSlash: "always",
   integrations: [sitemap()],
-  // コードのハイライト（Shiki）はインラインのスタイルを使い CSP と両立しない。コードブロックを使わないので無効にする
-  markdown: { syntaxHighlight: false },
+  markdown: {
+    // コードのハイライト（Shiki）はインラインのスタイルを使い CSP と両立しない。コードブロックを使わないので無効にする
+    syntaxHighlight: false,
+    // NFR-16 / DD-11：Markdown の本文の外部リンクに、新しいタブと noopener を付ける（#39）。
+    // 標準の変換器 Sätteri を、プラグインを足して使う（rehypePlugins は Sätteri では使えない）
+    processor: satteri({ hastPlugins: [externalLinks(SITE)] }),
+  },
   // フォントを data: URI で CSS に埋め込まない（CSP の font-src 'self' を保つ。TC-N11 で検出）。
   // ほかのアセットは既定のまま（小さい CSS はインラインにして、読み込みのリクエストを減らす）
   vite: { build: { assetsInlineLimit: (file) => (/\.(woff2?|ttf|otf)$/.test(file) ? false : undefined) } },
