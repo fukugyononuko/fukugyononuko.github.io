@@ -1,7 +1,20 @@
 // 総合テスト（TC-S）。ビルド済みのサイトを、現在のコンテンツ（RES-01〜03）で検査する。
+import { readdirSync, statSync } from "node:fs";
+import { join, relative } from "node:path";
 import { expect, test } from "@playwright/test";
 
 const SITE = "https://fukugyononuko.github.io";
+
+/** ビルドで生成されたすべての HTML のページの URL（dist/about/index.html → /about/、dist/404.html → /404.html） */
+function builtPages(dir = "dist"): string[] {
+  return readdirSync(dir).flatMap((name) => {
+    const path = join(dir, name);
+    if (statSync(path).isDirectory()) return builtPages(path);
+    if (!name.endsWith(".html")) return [];
+    const url = `/${relative("dist", path).split("\\").join("/")}`;
+    return [url.endsWith("/index.html") ? url.slice(0, -"index.html".length) : url];
+  });
+}
 
 test.describe("TC-S01：全画面が表示され、画面項目がある", () => {
   test("SCR-01 トップ", async ({ page }) => {
@@ -128,8 +141,11 @@ test("TC-N12：?service= に HTML を含む値を与えても解釈されない"
   expect(await page.locator("img[src='x']").count()).toBe(0);
 });
 
-test("TC-N13：外部リンクには noopener noreferrer と新しいタブが付き、iframe には sandbox が付く", async ({ page }) => {
-  for (const path of ["/", "/about/", "/services/homepage-mock/", "/news/news-section/", "/contact/"]) {
+test("TC-N13：すべてのページの外部リンクに noopener noreferrer と新しいタブが付き、iframe には sandbox が付く", async ({ page }) => {
+  // 対象はビルドで生成されたすべてのページ（本文に HTML の <a> を直接書いた場合も、出力のこの検査で止める。DD-11）
+  const pages = builtPages();
+  expect(pages.length, "dist にページがない（先に npm run build）").toBeGreaterThan(5);
+  for (const path of pages) {
     await page.goto(path);
     // 外部リンクの定義（DD-11）：href をサイトを基準に解決し、http・https で、サイトのオリジンと違うもの。
     // 配信元（プレビューのサーバー）のオリジンは内部として扱わない（実装と同じ。PR #47 のレビュー 2 回目）。

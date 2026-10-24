@@ -1,6 +1,6 @@
 // TC-A02：ほかの依存が使っているパッケージを直接の依存にも書くときは、コピーが 1 つだけであること（DD-11、#39）
-// astro.config.mjs で設定した Markdown のプラグイン（と、その中で使う HTML の解析器）が、Astro の使う変換器と同じものになるようにするため。
-// Dependabot のグループは同時の更新を保証しないので、版がずれた PR はこのテストで失敗させる。
+// astro.config.mjs で設定した Markdown のプラグインが、Astro の使う変換器と同じものになるようにするため。
+// @astrojs/markdown-satteri は Dependabot では ignore にしている。astro を上げる PR で版がずれたら、このテストで失敗させて手で合わせる。
 import { existsSync, readFileSync } from "node:fs";
 import { join } from "node:path";
 import { describe, expect, it } from "vitest";
@@ -8,7 +8,6 @@ import { describe, expect, it } from "vitest";
 /** 直接の依存に書いたパッケージと、それを使っている依存（owner） */
 const SHARED = [
   { name: "@astrojs/markdown-satteri", owner: "astro" },
-  { name: "satteri", owner: "@astrojs/markdown-satteri" },
 ];
 
 const root = JSON.parse(readFileSync("package.json", "utf8")) as { dependencies: Record<string, string> };

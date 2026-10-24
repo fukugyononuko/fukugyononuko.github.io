@@ -8,7 +8,7 @@
   },
   "scripts": {
     "dev": "astro dev",
-    "build": "astro build --force && node scripts/subset-heading-font.mjs",
+    "build": "astro build && node scripts/subset-heading-font.mjs",
     "preview": "astro preview",
     "lint": "astro check",
     "depcruise": "depcruise src --config .dependency-cruiser.cjs && node scripts/check-astro-imports.mjs",
@@ -24,8 +24,7 @@
     "@astrojs/markdown-satteri": "0.4.3",
     "@astrojs/sitemap": "^3.7.4",
     "astro": "^7.3.8",
-    "js-yaml": "^4.3.2",
-    "satteri": "0.10.5"
+    "js-yaml": "^4.3.2"
   },
   "devDependencies": {
     "@astrojs/check": "^0.9.10",

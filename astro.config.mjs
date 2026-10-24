@@ -5,18 +5,19 @@ import { satteri } from "@astrojs/markdown-satteri";
 import { externalLinks } from "./src/markdown/external-links.ts";
 
 const SITE = "https://fukugyononuko.github.io";
-// 本文の外部リンクの変換と、本文に HTML の <a> を直接書いたときにビルドを失敗させる検査（DD-02、DD-11、#39）
-const links = externalLinks(SITE);
 
 export default defineConfig({
   site: SITE,
   base: "/",
   trailingSlash: "always",
-  integrations: [sitemap(), links.integration],
-  // コードのハイライト（Shiki）はインラインのスタイルを使い CSP と両立しない。コードブロックを使わないので無効にする
-  // NFR-16 / DD-11：Markdown の本文の外部リンクに、新しいタブと noopener を付ける（#39）。
-  // 標準の変換器 Sätteri を、プラグインを足して使う（rehypePlugins は Sätteri では使えない）
-  markdown: { syntaxHighlight: false, processor: satteri({ hastPlugins: [links.hastPlugin] }) },
+  integrations: [sitemap()],
+  markdown: {
+    // コードのハイライト（Shiki）はインラインのスタイルを使い CSP と両立しない。コードブロックを使わないので無効にする
+    syntaxHighlight: false,
+    // NFR-16 / DD-11：Markdown の本文の外部リンクに、新しいタブと noopener を付ける（#39）。
+    // 標準の変換器 Sätteri を、プラグインを足して使う（rehypePlugins は Sätteri では使えない）
+    processor: satteri({ hastPlugins: [externalLinks(SITE)] }),
+  },
   // フォントを data: URI で CSS に埋め込まない（CSP の font-src 'self' を保つ。TC-N11 で検出）。
   // ほかのアセットは既定のまま（小さい CSS はインラインにして、読み込みのリクエストを減らす）
   vite: { build: { assetsInlineLimit: (file) => (/\.(woff2?|ttf|otf)$/.test(file) ? false : undefined) } },
